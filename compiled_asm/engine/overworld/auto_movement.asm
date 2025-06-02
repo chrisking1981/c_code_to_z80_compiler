@@ -1,3 +1,18 @@
+PalletMovementScriptPointerTable::
+	dw PalletMovementScript_OakMoveLeft
+	dw PalletMovementScript_PlayerMoveLeft
+	dw PalletMovementScript_WaitAndWalkToLab
+	dw PalletMovementScript_WalkToLab
+	dw PalletMovementScript_Done
+
+PewterMuseumGuyMovementScriptPointerTable::
+	dw PewterMovementScript_WalkToMuseum
+	dw PewterMovementScript_Done
+
+PewterGymGuyMovementScriptPointerTable::
+	dw PewterMovementScript_WalkToGym
+	dw PewterMovementScript_Done
+
 PlayerStepOutFromDoor::
 	ld hl, wStatusFlags5
 	res BIT_EXITING_DOOR, [hl]

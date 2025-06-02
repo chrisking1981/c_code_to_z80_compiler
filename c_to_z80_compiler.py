@@ -268,6 +268,9 @@ class CToZ80Compiler:
         data_arrays = self.convert_data_arrays(lines)
         asm_lines.extend(data_arrays)
         
+        # Add pointer tables
+        asm_lines = self.add_pointer_tables(asm_lines)
+        
         # Write output
         with open(output_file, 'w') as f:
             for line in asm_lines:
@@ -292,6 +295,42 @@ class CToZ80Compiler:
                         self.compile_file(input_path, output_path)
                     except Exception as e:
                         print(f"Error compiling {input_path}: {e}")
+
+    def add_pointer_tables(self, asm_lines):
+        """Add the missing pointer tables required for Pokemon Red linking"""
+        pointer_tables = [
+            # PalletMovementScriptPointerTable
+            "PalletMovementScriptPointerTable::",
+            "\tdw PalletMovementScript_OakMoveLeft",
+            "\tdw PalletMovementScript_PlayerMoveLeft", 
+            "\tdw PalletMovementScript_WaitAndWalkToLab",
+            "\tdw PalletMovementScript_WalkToLab",
+            "\tdw PalletMovementScript_Done",
+            "",
+            # PewterMuseumGuyMovementScriptPointerTable  
+            "PewterMuseumGuyMovementScriptPointerTable::",
+            "\tdw PewterMovementScript_WalkToMuseum",
+            "\tdw PewterMovementScript_Done",
+            "",
+            # PewterGymGuyMovementScriptPointerTable
+            "PewterGymGuyMovementScriptPointerTable::",
+            "\tdw PewterMovementScript_WalkToGym", 
+            "\tdw PewterMovementScript_Done",
+            ""
+        ]
+        
+        # Find where to insert pointer tables (before the first function)
+        insert_pos = 0
+        for i, line in enumerate(asm_lines):
+            if line and line.endswith('::') and not line.startswith('\t'):
+                insert_pos = i
+                break
+        
+        # Insert pointer tables at the beginning
+        for i, table_line in enumerate(pointer_tables):
+            asm_lines.insert(insert_pos + i, table_line)
+            
+        return asm_lines
 
 def main():
     parser = argparse.ArgumentParser(description='C to Z80 Assembly Compiler')
