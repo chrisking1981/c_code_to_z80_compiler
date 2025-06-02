@@ -334,7 +334,7 @@ const uint8_t RLEList_ProfOakWalkToLab[] = {
     NPC_MOVEMENT_RIGHT, 3,
     NPC_MOVEMENT_UP, 1,
     NPC_CHANGE_FACING, 1,
-    0xFF // end
+    -1 // end
 };
 
 const uint8_t RLEList_PlayerWalkToLab[] = {
@@ -343,7 +343,7 @@ const uint8_t RLEList_PlayerWalkToLab[] = {
     D_DOWN, 5,
     D_LEFT, 1,
     D_DOWN, 6,
-    0xFF // end
+    -1 // end
 };
 
 void PalletMovementScript_Done(void) {
@@ -371,8 +371,7 @@ void PalletMovementScript_Done(void) {
     // res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
     *hl &= ~(1 << BIT_INIT_SCRIPTED_MOVEMENT);
     // jp EndNPCMovementScript
-    EndNPCMovementScript();
-    return;
+    EndNPCMovementScript(); /* jp */
 }
 
 void PewterMovementScript_WalkToMuseum(void) {
@@ -439,7 +438,7 @@ const uint8_t RLEList_PewterMuseumPlayer[] = {
     D_UP, 3,
     D_LEFT, 13,
     D_UP, 6,
-    0xFF // end
+    -1 // end
 };
 
 const uint8_t RLEList_PewterMuseumGuy[] = {
@@ -447,7 +446,7 @@ const uint8_t RLEList_PewterMuseumGuy[] = {
     NPC_MOVEMENT_LEFT, 13,
     NPC_MOVEMENT_UP, 3,
     NPC_MOVEMENT_LEFT, 1,
-    0xFF // end
+    -1 // end
 };
 
 void PewterMovementScript_Done(void) {
@@ -469,8 +468,7 @@ void PewterMovementScript_Done(void) {
     // res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
     *hl &= ~(1 << BIT_INIT_SCRIPTED_MOVEMENT);
     // jp EndNPCMovementScript
-    EndNPCMovementScript();
-    return;
+    EndNPCMovementScript(); /* jp */
 }
 
 void PewterMovementScript_WalkToGym(void) {
@@ -545,7 +543,7 @@ const uint8_t RLEList_PewterGymPlayer[] = {
     D_LEFT, 11,
     D_UP, 5,
     D_LEFT, 15,
-    0xFF // end
+    -1 // end
 };
 
 const uint8_t RLEList_PewterGymGuy[] = {
@@ -555,7 +553,7 @@ const uint8_t RLEList_PewterGymGuy[] = {
     NPC_MOVEMENT_LEFT, 11,
     NPC_MOVEMENT_DOWN, 5,
     NPC_MOVEMENT_RIGHT, 3,
-    0xFF // end
+    -1 // end
 };
 
 void SetEnemyTrainerToStayAndFaceAnyDirection(void) {
@@ -580,7 +578,7 @@ loop:
     a = *hl++;
     // cp -1
     // jr z, .notRival
-    if (a == 0xFF) goto notRival;
+    if (a == -1) goto notRival;
     // cp b
     // ret z
     if (a == b) return;
@@ -593,13 +591,12 @@ notRival:
     // ldh [hSpriteIndex], a
     hSpriteIndex = a;
     // jp SetSpriteMovementBytesToFF
-    SetSpriteMovementBytesToFF();
-    return;
+    SetSpriteMovementBytesToFF(); /* jp */
 }
 
 const uint8_t RivalIDs[] = {
     OPP_RIVAL1,
     OPP_RIVAL2,
     OPP_RIVAL3,
-    0xFF // end
+    -1 // end
 }; 

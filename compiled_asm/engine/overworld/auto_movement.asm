@@ -1,18 +1,3 @@
-PalletMovementScriptPointerTable::
-	dw PalletMovementScript_OakMoveLeft
-	dw PalletMovementScript_PlayerMoveLeft
-	dw PalletMovementScript_WaitAndWalkToLab
-	dw PalletMovementScript_WalkToLab
-	dw PalletMovementScript_Done
-
-PewterMuseumGuyMovementScriptPointerTable::
-	dw PewterMovementScript_WalkToMuseum
-	dw PewterMovementScript_Done
-
-PewterGymGuyMovementScriptPointerTable::
-	dw PewterMovementScript_WalkToGym
-	dw PewterMovementScript_Done
-
 PlayerStepOutFromDoor::
 	ld hl, wStatusFlags5
 	res BIT_EXITING_DOOR, [hl]
@@ -41,6 +26,7 @@ PlayerStepOutFromDoor::
 	ld hl, wStatusFlags5
 	res BIT_SCRIPTED_MOVEMENT_STATE, [hl]
 	ret
+
 _EndNPCMovementScript::
 	ld hl, wStatusFlags5
 	res BIT_SCRIPTED_MOVEMENT_STATE, [hl]
@@ -57,7 +43,15 @@ _EndNPCMovementScript::
 	ld [wSimulatedJoypadStatesIndex], a
 	ld [wSimulatedJoypadStatesEnd], a
 	ret
-PalletMovementScript_OakMoveLeft::
+
+PalletMovementScriptPointerTable::
+	dw PalletMovementScript_OakMoveLeft
+	dw PalletMovementScript_PlayerMoveLeft
+	dw PalletMovementScript_WaitAndWalkToLab
+	dw PalletMovementScript_WalkToLab
+	dw PalletMovementScript_Done
+
+PalletMovementScript_OakMoveLeft:
 	ld a, [wXCoord]
 	sub $a
 	ld [wNumStepsToTake], a
@@ -70,6 +64,7 @@ PalletMovementScript_OakMoveLeft::
 	ld [hl], $ff
 	ld a, [wSpriteIndex]
 	ldh [hSpriteIndex], a
+	ld de, wNPCMovementDirections2
 	call MoveSprite
 	ld a, $1
 	ld [wNPCMovementScriptFunctionNum], a
@@ -83,7 +78,8 @@ PalletMovementScript_OakMoveLeft::
 	ld a, SELECT | START | D_RIGHT | D_LEFT | D_UP | D_DOWN
 	ld [wJoyIgnore], a
 	ret
-PalletMovementScript_PlayerMoveLeft::
+
+PalletMovementScript_PlayerMoveLeft:
 	ld a, [wStatusFlags5]
 	bit BIT_SCRIPTED_NPC_MOVEMENT, a
 	ret nz
@@ -95,11 +91,13 @@ PalletMovementScript_PlayerMoveLeft::
 	ld a, $2
 	ld [wNPCMovementScriptFunctionNum], a
 	ret
-PalletMovementScript_WaitAndWalkToLab::
+
+PalletMovementScript_WaitAndWalkToLab:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
 	ret nz
-PalletMovementScript_WalkToLab::
+
+PalletMovementScript_WalkToLab:
 	xor a
 	ld [wOverrideSimulatedJoypadStatesMask], a
 	ld a, [wSpriteIndex]
@@ -122,7 +120,23 @@ PalletMovementScript_WalkToLab::
 	ld a, $4
 	ld [wNPCMovementScriptFunctionNum], a
 	ret
-PalletMovementScript_Done::
+
+RLEList_ProfOakWalkToLab:
+	db NPC_MOVEMENT_DOWN, 5
+	db NPC_MOVEMENT_LEFT, 1
+	db NPC_MOVEMENT_DOWN, 5
+	db NPC_MOVEMENT_RIGHT, 3
+	db NPC_MOVEMENT_UP, 1
+	db NPC_CHANGE_FACING, 1
+	db -1
+RLEList_PlayerWalkToLab:
+	db D_UP, 2
+	db D_RIGHT, 3
+	db D_DOWN, 5
+	db D_LEFT, 1
+	db D_DOWN, 6
+	db -1
+PalletMovementScript_Done:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
 	ret nz
@@ -134,8 +148,12 @@ PalletMovementScript_Done::
 	ld hl, wStatusFlags4
 	res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
 	jp EndNPCMovementScript
-	ret
-PewterMovementScript_WalkToMuseum::
+
+PewterMuseumGuyMovementScriptPointerTable::
+	dw PewterMovementScript_WalkToMuseum
+	dw PewterMovementScript_Done
+
+PewterMovementScript_WalkToMuseum:
 	ld a, BANK(Music_MuseumGuy)
 	ld [wAudioROMBank], a
 	ld [wAudioSavedROMBank], a
@@ -162,7 +180,20 @@ PewterMovementScript_WalkToMuseum::
 	ld a, $1
 	ld [wNPCMovementScriptFunctionNum], a
 	ret
-PewterMovementScript_Done::
+
+RLEList_PewterMuseumPlayer:
+	db NO_INPUT, 1
+	db D_UP, 3
+	db D_LEFT, 13
+	db D_UP, 6
+	db -1
+RLEList_PewterMuseumGuy:
+	db NPC_MOVEMENT_UP, 6
+	db NPC_MOVEMENT_LEFT, 13
+	db NPC_MOVEMENT_UP, 3
+	db NPC_MOVEMENT_LEFT, 1
+	db -1
+PewterMovementScript_Done:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
 	ret nz
@@ -171,8 +202,12 @@ PewterMovementScript_Done::
 	ld hl, wStatusFlags4
 	res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
 	jp EndNPCMovementScript
-	ret
-PewterMovementScript_WalkToGym::
+
+PewterGymGuyMovementScriptPointerTable::
+	dw PewterMovementScript_WalkToGym
+	dw PewterMovementScript_Done
+
+PewterMovementScript_WalkToGym:
 	ld a, BANK(Music_MuseumGuy)
 	ld [wAudioROMBank], a
 	ld [wAudioSavedROMBank], a
@@ -202,6 +237,23 @@ PewterMovementScript_WalkToGym::
 	ld a, $1
 	ld [wNPCMovementScriptFunctionNum], a
 	ret
+
+RLEList_PewterGymPlayer:
+	db NO_INPUT, 1
+	db D_RIGHT, 2
+	db D_DOWN, 5
+	db D_LEFT, 11
+	db D_UP, 5
+	db D_LEFT, 15
+	db -1
+RLEList_PewterGymGuy:
+	db NPC_MOVEMENT_DOWN, 2
+	db NPC_MOVEMENT_LEFT, 15
+	db NPC_MOVEMENT_UP, 5
+	db NPC_MOVEMENT_LEFT, 11
+	db NPC_MOVEMENT_DOWN, 5
+	db NPC_MOVEMENT_RIGHT, 3
+	db -1
 SetEnemyTrainerToStayAndFaceAnyDirection::
 	ld a, [wCurMap]
 	cp POKEMON_TOWER_7F
@@ -219,60 +271,10 @@ SetEnemyTrainerToStayAndFaceAnyDirection::
 .notRival
 	ld a, [wSpriteIndex]
 	ldh [hSpriteIndex], a
-	call SetSpriteMovementBytesToFF
-	ret
-RLEList_ProfOakWalkToLab:
-	db NPC_MOVEMENT_DOWN, 5
-	db NPC_MOVEMENT_LEFT, 1
-	db NPC_MOVEMENT_DOWN, 5
-	db NPC_MOVEMENT_RIGHT, 3
-	db NPC_MOVEMENT_UP, 1
-	db NPC_CHANGE_FACING, 1
-	db -1 ; end
-
-RLEList_PlayerWalkToLab:
-	db D_UP, 2
-	db D_RIGHT, 3
-	db D_DOWN, 5
-	db D_LEFT, 1
-	db D_DOWN, 6
-	db -1 ; end
-
-RLEList_PewterMuseumPlayer:
-	db NO_INPUT, 1
-	db D_UP, 3
-	db D_LEFT, 13
-	db D_UP, 6
-	db -1 ; end
-
-RLEList_PewterMuseumGuy:
-	db NPC_MOVEMENT_UP, 6
-	db NPC_MOVEMENT_LEFT, 13
-	db NPC_MOVEMENT_UP, 3
-	db NPC_MOVEMENT_LEFT, 1
-	db -1 ; end
-
-RLEList_PewterGymPlayer:
-	db NO_INPUT, 1
-	db D_RIGHT, 2
-	db D_DOWN, 5
-	db D_LEFT, 11
-	db D_UP, 5
-	db D_LEFT, 15
-	db -1 ; end
-
-RLEList_PewterGymGuy:
-	db NPC_MOVEMENT_DOWN, 2
-	db NPC_MOVEMENT_LEFT, 15
-	db NPC_MOVEMENT_UP, 5
-	db NPC_MOVEMENT_LEFT, 11
-	db NPC_MOVEMENT_DOWN, 5
-	db NPC_MOVEMENT_RIGHT, 3
-	db -1 ; end
+	jp SetSpriteMovementBytesToFF
 
 RivalIDs:
 	db OPP_RIVAL1
 	db OPP_RIVAL2
 	db OPP_RIVAL3
-	db -1 ; end
-
+	db -1
