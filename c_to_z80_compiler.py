@@ -126,6 +126,11 @@ class CToZ80Compiler:
         if 'a = 0;' in original:
             return "\txor a"
             
+        # Variable assignments - a = BANK(...); (must be before function calls)
+        if match := re.search(r'a\s*=\s*(BANK\([^)]+\));', original):
+            value = match.group(1)
+            return f"\tld a, {value}"
+            
         # Function calls with assignment - a = function(...);
         if match := re.search(r'a\s*=\s*(\w+)\([^)]*\);', original):
             return f"\tcall {match.group(1)}"
