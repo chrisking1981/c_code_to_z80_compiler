@@ -1,0 +1,11 @@
+=== DETAILED COMPARISON: auto_movement.asm ===
+Timestamp: 2025-06-03 10:08:13
+
+Functional similarity: 100.0%
+Overall similarity: 93.5%
+Original lines: 266
+Compiled lines: 266
+Perfect match: True
+Grade: A+
+
+=== NO DIFFERENCES - PERFECT MATCH! ===

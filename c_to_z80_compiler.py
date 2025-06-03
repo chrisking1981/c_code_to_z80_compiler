@@ -179,15 +179,18 @@ class CToZ80Compiler:
                     i = self.skip_text_content(lines, i)
                     continue
             
-            # Handle data arrays (non-text)
+            # Handle data arrays (including graphics)
             if (line.strip().startswith('const uint8_t') and 'Text' not in line) or \
-               (line.strip().startswith('const char') and 'Text' not in line):
+               (line.strip().startswith('const uint16_t') and 'Text' not in line) or \
+               (line.strip().startswith('const char') and ('_graphics' in line or 'INCBIN_' in line)):
                 data_lines = self.handle_data_array(lines, i)
-                processed.append({'type': 'data_array', 'content': data_lines})
+                if data_lines:  # Only add if we got valid data
+                    processed.append({'type': 'data_array', 'content': data_lines})
                 # Skip the array definition lines
                 while i < len(lines) and '}' not in lines[i]:
                     i += 1
-                i += 1  # Skip the closing brace line
+                if i < len(lines):  # Skip the closing brace line
+                    i += 1
                 continue
             
             # Handle labels
@@ -431,6 +434,7 @@ class CToZ80Compiler:
         if line.startswith('goto '):
             label = line[5:-1].strip()
             self.labels_used.add(label)
+            # Don't use . prefix for goto - they're already correct labels
             return f"jr .{label}"
         
         # Handle return statements
@@ -754,23 +758,117 @@ class CToZ80Compiler:
             return value
     
     def handle_data_array(self, lines, start_index):
-        """Handle const uint8_t and const char arrays"""
+        """Handle const uint8_t, uint16_t and const char arrays"""
         data_lines = []
         line = lines[start_index].strip()
         
-        # Extract array name for both uint8_t and char arrays
-        array_match = re.search(r'const (?:uint8_t|char) (\w+)\[\]', line)
+        # Extract array name for uint8_t, uint16_t, and char arrays
+        array_match = re.search(r'const (?:uint8_t|uint16_t|char) (\w+)\[\]', line)
         if not array_match:
             return []
         
         array_name = array_match.group(1)
         
-        # Use single colon for all data arrays (consistent with functions)
-        data_lines.append(f"{array_name}:")
+        # Handle uint8_t arrays (including markers and INCBIN)
+        if 'const uint8_t' in line:
+            # Handle MARKER patterns (label-only definitions)
+            if '_MARKER' in array_name:
+                label_name = array_name.replace('_MARKER', '')
+                data_lines = [f"{label_name}:"]
+                return data_lines
+            
+            # Handle INCBIN patterns
+            if '_INCBIN' in array_name:
+                # Extract the label name (ShockEmote, QuestionEmote, etc.)
+                label_name = array_name.replace('_INCBIN', '')
+                
+                # Look for path in comment on the same line
+                path_match = re.search(r'/\* ([^*]+) \*/', line)
+                if path_match:
+                    path = path_match.group(1)
+                    data_lines = []
+                    data_lines.append(f"{label_name}:")
+                    data_lines.append(f"\tINCBIN \"{path}\"")
+                    return data_lines
+                else:
+                    # Fallback if no path found
+                    data_lines = [f"{label_name}:"]
+                    return data_lines
+        
+        # Handle uint16_t pointer tables (like EmotionBubblesPointerTable)
+        if 'const uint16_t' in line:
+            # Use :: for pointer tables
+            data_lines.append(f"{array_name}::")
+            
+            # Find array content
+            content_start = start_index
+            while content_start < len(lines) and '{' not in lines[content_start]:
+                content_start += 1
+            
+            if content_start >= len(lines):
+                return data_lines
+            
+            # Extract data values
+            array_content = ""
+            brace_level = 0
+            for i in range(content_start, len(lines)):
+                line = lines[i]
+                array_content += line + " "
+                brace_level += line.count('{') - line.count('}')
+                if brace_level == 0:
+                    break
+            
+            # Parse pointer values
+            content_match = re.search(r'\{([^}]+)\}', array_content)
+            if content_match:
+                content = content_match.group(1)
+                # Split by comma and clean up
+                values = []
+                for item in content.split(','):
+                    item = item.strip()
+                    # Remove inline comments and casts
+                    if '//' in item:
+                        item = item.split('//')[0].strip()
+                    if '(uint16_t)' in item:
+                        item = item.replace('(uint16_t)', '').strip()
+                    if item and item != '':
+                        values.append(item)
+                
+                # Generate dw statements
+                for value in values:
+                    data_lines.append(f"\tdw {value}")
+            
+            return data_lines
         
         # Handle string arrays (const char)
-        if 'const char' in line and 'Text' not in line:
-            # Look for string content
+        if 'const char' in line:
+            # Handle graphics markers - these create labels
+            if '_graphics_marker' in array_name:
+                label_name = array_name.replace('_graphics_marker', '')
+                data_lines = [f"{label_name}:"]
+                return data_lines
+            
+            # Handle INCBIN graphics data
+            if '_graphics' in array_name and 'INCBIN_' in line:
+                # Extract the emote name (ShockEmote, QuestionEmote, etc.)
+                emote_name = array_name.replace('_graphics', '')
+                # Extract INCBIN path from string
+                incbin_match = re.search(r'INCBIN_([^"]+)', line)
+                if incbin_match:
+                    path = incbin_match.group(1)
+                    # Create label and INCBIN statement
+                    data_lines = []
+                    data_lines.append(f"{emote_name}:")
+                    data_lines.append(f"\tINCBIN \"{path}\"")
+                    return data_lines
+            
+            # Handle text sections (but not in emotion_bubbles)
+            if 'Text' not in line:
+                # Skip other graphics arrays that don't need text processing
+                if '_graphics' in array_name:
+                    return []
+            
+            # Look for string content for text sections
             string_match = re.search(r'=\s*"([^"]*)"', line)
             if string_match:
                 string_content = string_match.group(1)
@@ -778,6 +876,9 @@ class CToZ80Compiler:
                 data_lines.append(f"\ttext_far _{array_name}")
                 data_lines.append(f"\ttext_end")
                 return data_lines
+        
+        # Use single colon for all other data arrays (uint8_t)
+        data_lines.append(f"{array_name}:")
         
         # Find array content for uint8_t arrays
         content_start = start_index
@@ -1039,8 +1140,30 @@ def main():
     compiler.output_dir = args.output
     
     if args.file:
-        output_file = args.file.replace('.c', '.asm')
-        compiler.compile_file(args.file, output_file)
+        # Create proper output path maintaining directory structure
+        input_path = Path(args.file)
+        
+        # Determine relative path from input directory
+        if input_path.is_absolute():
+            # For absolute paths, try to find relative path from common base
+            try:
+                relative_path = input_path.relative_to(Path.cwd() / args.input)
+            except ValueError:
+                # If not under input directory, use just the filename
+                relative_path = input_path.name
+        else:
+            # For relative paths, try to make it relative to input directory
+            if str(input_path).startswith(args.input):
+                relative_path = input_path.relative_to(args.input)
+            else:
+                relative_path = input_path.name
+        
+        # Create output file path in output directory
+        output_file = Path(args.output) / relative_path.with_suffix('.asm')
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        print(f"Compiling {args.file} -> {output_file}")
+        compiler.compile_file(args.file, str(output_file))
     else:
         compiler.compile_directory(args.input)
     

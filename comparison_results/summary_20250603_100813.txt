@@ -1,0 +1,74 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 5 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 100.0%
+Overall similarity: 93.5%
+Line count - Original: 266, Compiled: 266
+✅ PERFECT MATCH!
+
+📄 cut.asm
+----------------------------------------
+Functional similarity: 88.7%
+Overall similarity: 85.1%
+Line count - Original: 233, Compiled: 236
+❌ 10 functional differences found
+  Line 23:
+    Original:  .NothingToCutText
+    Compiled:  NothingToCutText:
+  Line 67:
+    Original:  UsedCutText:
+    Compiled:  InitCutAnimOAM:
+  Line 68:
+    Original:  text_far _UsedCutText
+    Compiled:  xor a
+
+📄 dust_smoke.asm
+----------------------------------------
+Functional similarity: 89.0%
+Overall similarity: 88.0%
+Line count - Original: 81, Compiled: 74
+❌ 10 functional differences found
+  Line 20:
+    Original:  .returnAddress
+    Compiled:  Call the function that was set up by GetMoveBoulderDustFunctionPointer
+  Line 21:
+    Original:  ldh a, [rOBP1]
+    Compiled:  .returnAddress
+  Line 22:
+    Original:  xor %01100100
+    Compiled:  ldh a, [rOBP1]
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 100.0%
+Overall similarity: 96.5%
+Line count - Original: 67, Compiled: 67
+✅ PERFECT MATCH!
+
+📄 emotion_bubbles.asm
+----------------------------------------
+Functional similarity: 81.2%
+Overall similarity: 75.0%
+Line count - Original: 69, Compiled: 69
+❌ 10 functional differences found
+  Line 27:
+    Original:  .loop
+    Compiled:  ..loop
+  Line 57:
+    Original:  EmotionBubblesPointerTable:
+    Compiled:  EmotionBubblesPointerTable::
+  Line 58:
+    Original:  dw ShockEmote
+    Compiled:  dw ShockEmote_INCBIN
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 5
+Perfect matches: 2/5
+Average functional similarity: 91.8%
+Overall grade: A
+✅ VERY GOOD - Minor differences only

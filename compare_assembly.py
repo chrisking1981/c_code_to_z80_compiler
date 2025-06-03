@@ -8,12 +8,17 @@ import os
 import re
 from pathlib import Path
 from difflib import SequenceMatcher
+from datetime import datetime
 
 
 class AssemblyComparer:
     def __init__(self):
         self.original_dir = "pokered/engine/overworld"
         self.compiled_dir = "compiled_asm/engine/overworld"
+        self.results_dir = "comparison_results"
+        
+        # Create results directory if it doesn't exist
+        Path(self.results_dir).mkdir(exist_ok=True)
         
     def normalize_line(self, line):
         """Normalize a line for comparison by removing extra whitespace and standardizing format"""
@@ -128,19 +133,33 @@ class AssemblyComparer:
     
     def compare_all_files(self):
         """Compare all assembly files and return summary"""
-        files_to_compare = [
-            'cut.asm',
-            'auto_movement.asm',
-            'dust_smoke.asm',
-            'elevator.asm'
-        ]
+        # Automatically find all .asm files in compiled directory
+        compiled_path = Path(self.compiled_dir)
+        if not compiled_path.exists():
+            print(f"❌ Compiled directory not found: {self.compiled_dir}")
+            return []
+        
+        asm_files = list(compiled_path.glob("*.asm"))
+        if not asm_files:
+            print(f"❌ No .asm files found in {self.compiled_dir}")
+            return []
+        
+        files_to_compare = [f.name for f in asm_files]
+        files_to_compare.sort()  # Sort alphabetically for consistent order
         
         results = []
         total_functional_similarity = 0
         perfect_matches = 0
+        summary_lines = []
         
+        summary_lines.append("🔍 ASSEMBLY FILE COMPARISON ANALYSIS")
+        summary_lines.append("=" * 60)
+        summary_lines.append(f"Found {len(files_to_compare)} files to compare")
+        summary_lines.append("")
         print("🔍 ASSEMBLY FILE COMPARISON ANALYSIS")
         print("=" * 60)
+        print(f"Found {len(files_to_compare)} files to compare")
+        print("")
         
         for filename in files_to_compare:
             original_path = os.path.join(self.original_dir, filename)
@@ -153,29 +172,47 @@ class AssemblyComparer:
                 if result['perfect_match']:
                     perfect_matches += 1
                 
+                file_summary = self.get_file_summary(result)
+                summary_lines.extend(file_summary)
                 self.print_file_analysis(result)
+            else:
+                # File not found
+                missing_msg = f"\n📄 {filename}\n" + "-" * 40 + f"\n❌ ORIGINAL FILE NOT FOUND\n"
+                summary_lines.append(missing_msg)
+                print(missing_msg)
         
         # Overall summary
         if results:
             avg_similarity = total_functional_similarity / len(results)
-            print("\n📊 OVERALL SUMMARY")
-            print("=" * 60)
-            print(f"Files analyzed: {len(results)}")
-            print(f"Perfect matches: {perfect_matches}/{len(results)}")
-            print(f"Average functional similarity: {avg_similarity:.1%}")
-            print(f"Overall grade: {self.get_grade(avg_similarity)}")
+            
+            overall_summary = [
+                "\n📊 OVERALL SUMMARY",
+                "=" * 60,
+                f"Files analyzed: {len(results)}",
+                f"Perfect matches: {perfect_matches}/{len(results)}",
+                f"Average functional similarity: {avg_similarity:.1%}",
+                f"Overall grade: {self.get_grade(avg_similarity)}"
+            ]
             
             # Quality assessment
             if avg_similarity >= 0.95:
-                print("🏆 EXCELLENT - Near perfect compilation!")
+                overall_summary.append("🏆 EXCELLENT - Near perfect compilation!")
             elif avg_similarity >= 0.85:
-                print("✅ VERY GOOD - Minor differences only")
+                overall_summary.append("✅ VERY GOOD - Minor differences only")
             elif avg_similarity >= 0.70:
-                print("🔧 GOOD - Some issues to fix")
+                overall_summary.append("🔧 GOOD - Some issues to fix")
             elif avg_similarity >= 0.50:
-                print("⚠️  FAIR - Major improvements needed")
+                overall_summary.append("⚠️  FAIR - Major improvements needed")
             else:
-                print("❌ POOR - Significant problems")
+                overall_summary.append("❌ POOR - Significant problems")
+            
+            summary_lines.extend(overall_summary)
+            for line in overall_summary:
+                print(line)
+        
+        # Save results to files
+        summary_text = '\n'.join(summary_lines)
+        self.save_results(results, summary_text)
         
         return results
     
@@ -230,6 +267,102 @@ class AssemblyComparer:
             return "D"
         else:
             return "F"
+    
+    def save_results(self, results, summary_text):
+        """Save comparison results to timestamped files organized by file"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Save summary in main results directory
+        summary_file = Path(self.results_dir) / f"summary_{timestamp}.txt"
+        with open(summary_file, 'w', encoding='utf-8') as f:
+            f.write(summary_text)
+        
+        # Save detailed results for each file in separate folders
+        for result in results:
+            filename = os.path.basename(result['compiled_file']).replace('.asm', '')
+            similarity_pct = f"{result['functional_similarity']:.1%}"
+            
+            # Create file-specific directory
+            file_dir = Path(self.results_dir) / filename
+            file_dir.mkdir(exist_ok=True)
+            
+            # Save detailed result with similarity in filename
+            detail_file = file_dir / f"{filename}_{similarity_pct}_{timestamp}.txt"
+            
+            with open(detail_file, 'w', encoding='utf-8') as f:
+                f.write(f"=== DETAILED COMPARISON: {filename}.asm ===\n")
+                f.write(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+                f.write(f"Functional similarity: {result['functional_similarity']:.1%}\n")
+                f.write(f"Overall similarity: {result['all_lines_similarity']:.1%}\n")
+                f.write(f"Original lines: {result['original_functional_count']}\n")
+                f.write(f"Compiled lines: {result['compiled_functional_count']}\n")
+                f.write(f"Perfect match: {result['perfect_match']}\n")
+                f.write(f"Grade: {self.get_grade(result['functional_similarity'])}\n\n")
+                
+                if result['differences']:
+                    f.write("=== DIFFERENCES ===\n")
+                    for i, diff in enumerate(result['differences'], 1):
+                        if 'line' in diff:
+                            f.write(f"{i}. Line {diff['line']} mismatch:\n")
+                            f.write(f"   Original:  {diff['original']}\n")
+                            f.write(f"   Compiled:  {diff['compiled']}\n\n")
+                        elif diff['type'] == 'missing_in_compiled':
+                            f.write(f"{i}. Missing in compiled ({len(diff['lines'])} lines):\n")
+                            for line in diff['lines']:
+                                f.write(f"   {line}\n")
+                            f.write("\n")
+                        elif diff['type'] == 'extra_in_compiled':
+                            f.write(f"{i}. Extra in compiled ({len(diff['lines'])} lines):\n")
+                            for line in diff['lines']:
+                                f.write(f"   {line}\n")
+                            f.write("\n")
+                else:
+                    f.write("=== NO DIFFERENCES - PERFECT MATCH! ===\n")
+        
+        print(f"\n💾 Results saved to organized folders in {self.results_dir}/ with timestamp {timestamp}")
+        print(f"📁 Structure:")
+        for result in results:
+            filename = os.path.basename(result['compiled_file']).replace('.asm', '')
+            similarity_pct = f"{result['functional_similarity']:.1%}"
+            print(f"   {self.results_dir}/{filename}/{filename}_{similarity_pct}_{timestamp}.txt")
+        
+        return timestamp
+    
+    def get_file_summary(self, result):
+        """Get summary text for a single file"""
+        filename = os.path.basename(result['compiled_file'])
+        summary = [
+            f"\n📄 {filename}",
+            "-" * 40,
+            f"Functional similarity: {result['functional_similarity']:.1%}",
+            f"Overall similarity: {result['all_lines_similarity']:.1%}",
+            f"Line count - Original: {result['original_functional_count']}, Compiled: {result['compiled_functional_count']}"
+        ]
+        
+        if result['perfect_match']:
+            summary.append("✅ PERFECT MATCH!")
+        else:
+            diff_count = len([d for d in result['differences'] if 'line' in d])
+            summary.append(f"❌ {diff_count} functional differences found")
+            
+            # Show first few differences
+            for diff in result['differences'][:3]:
+                if 'line' in diff:
+                    summary.extend([
+                        f"  Line {diff['line']}:",
+                        f"    Original:  {diff['original']}",
+                        f"    Compiled:  {diff['compiled']}"
+                    ])
+                elif diff['type'] == 'missing_in_compiled':
+                    summary.append(f"  Missing in compiled: {len(diff['lines'])} lines")
+                    for line in diff['lines'][:2]:
+                        summary.append(f"    {line}")
+                elif diff['type'] == 'extra_in_compiled':
+                    summary.append(f"  Extra in compiled: {len(diff['lines'])} lines")
+                    for line in diff['lines'][:2]:
+                        summary.append(f"    {line}")
+        
+        return summary
 
 
 def main():
