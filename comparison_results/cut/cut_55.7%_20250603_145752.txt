@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: cut.asm ===
+Timestamp: 2025-06-03 14:57:52
+
+Functional similarity: 55.7%
+Overall similarity: 52.1%
+Original lines: 233
+Compiled lines: 101
+Perfect match: False
+Grade: D
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  UsedCut:
+   Compiled:  CutAnimationOffsets:
+
+2. Line 2 mismatch:
+   Original:  xor a
+   Compiled:  db 8, $24
+
+3. Line 3 mismatch:
+   Original:  ld [wActionResultOrTookBattleTurn], a
+   Compiled:  db 4, $14
+
+4. Line 4 mismatch:
+   Original:  ld a, [wCurMapTileset]
+   Compiled:  BoulderDustAnimationOffsets:
+
+5. Line 5 mismatch:
+   Original:  and a
+   Compiled:  db 8, $34
+
+6. Line 6 mismatch:
+   Original:  jr z, .overworld
+   Compiled:  db -12, $14
+
+7. Line 7 mismatch:
+   Original:  cp GYM
+   Compiled:  UsedCut:
+
+8. Line 8 mismatch:
+   Original:  jr nz, .nothingToCut
+   Compiled:  xor a
+
+9. Line 9 mismatch:
+   Original:  ld a, [wTileInFrontOfPlayer]
+   Compiled:  ld [wActionResultOrTookBattleTurn], a
+
+10. Line 10 mismatch:
+   Original:  cp $50
+   Compiled:  ld a, [wCurMapTileset]
+
+11. Missing in compiled (5 lines):
+   ld [hl], a
+   add hl, de
+   xor $60
+   dec c
+   jr nz, .loop
+

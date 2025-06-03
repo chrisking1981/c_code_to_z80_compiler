@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: auto_movement.asm ===
+Timestamp: 2025-06-03 14:57:52
+
+Functional similarity: 71.2%
+Overall similarity: 70.1%
+Original lines: 266
+Compiled lines: 223
+Perfect match: False
+Grade: C+
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  PlayerStepOutFromDoor::
+   Compiled:  RivalIDs:
+
+2. Line 2 mismatch:
+   Original:  ld hl, wStatusFlags5
+   Compiled:  db OPP_RIVAL1
+
+3. Line 3 mismatch:
+   Original:  res BIT_EXITING_DOOR, [hl]
+   Compiled:  db OPP_RIVAL2
+
+4. Line 4 mismatch:
+   Original:  call IsPlayerStandingOnDoorTile
+   Compiled:  db OPP_RIVAL3
+
+5. Line 5 mismatch:
+   Original:  jr nc, .notStandingOnDoor
+   Compiled:  db -1
+
+6. Line 6 mismatch:
+   Original:  ld a, SELECT | START | D_RIGHT | D_LEFT | D_UP | D_DOWN
+   Compiled:  RLEList_ProfOakWalkToLab:
+
+7. Line 7 mismatch:
+   Original:  ld [wJoyIgnore], a
+   Compiled:  db NPC_MOVEMENT_DOWN, 5
+
+8. Line 8 mismatch:
+   Original:  ld hl, wMovementFlags
+   Compiled:  db NPC_MOVEMENT_LEFT, 1
+
+9. Line 9 mismatch:
+   Original:  set BIT_EXITING_DOOR, [hl]
+   Compiled:  db NPC_MOVEMENT_DOWN, 5
+
+10. Line 10 mismatch:
+   Original:  ld a, $1
+   Compiled:  db NPC_MOVEMENT_RIGHT, 3
+
+11. Missing in compiled (5 lines):
+   set BIT_SCRIPTED_MOVEMENT_STATE, [hl]
+   ld a, $1
+   ld [wNPCMovementScriptFunctionNum], a
+   ret
+   RLEList_PewterGymPlayer:
+

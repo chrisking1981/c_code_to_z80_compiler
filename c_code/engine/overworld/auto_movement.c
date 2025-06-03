@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-// Extern declarations for variables and functions
+// Extern declarations for variables/functions
 extern uint8_t wStatusFlags5;
 extern uint8_t wMovementFlags;
 extern uint8_t wJoyIgnore;
@@ -8,34 +8,32 @@ extern uint8_t wSimulatedJoypadStatesIndex;
 extern uint8_t wSimulatedJoypadStatesEnd;
 extern uint8_t wSpritePlayerStateData1ImageIndex;
 extern uint8_t wUnusedOverrideSimulatedJoypadStatesIndex;
-extern uint8_t wSpriteIndex;
 extern uint8_t wNPCMovementScriptSpriteOffset;
 extern uint8_t wNPCMovementScriptFunctionNum;
 extern uint8_t wStatusFlags4;
 extern uint8_t wStatusFlags7;
 extern uint8_t wNumStepsToTake;
-extern uint8_t wWhichPewterGuy;
+extern uint8_t wSpriteIndex;
 extern uint8_t hSpriteIndex;
+extern uint8_t wWhichPewterGuy;
 extern uint8_t wAudioROMBank;
 extern uint8_t wAudioSavedROMBank;
 extern uint8_t wNewSoundID;
-extern uint8_t wNPCMovementDirections2[];
 extern uint8_t wSpritePlayerStateData2MovementByte1;
-extern uint8_t RLEList_PlayerWalkToLab[];
-extern uint8_t RLEList_ProfOakWalkToLab[];
-extern uint8_t RLEList_PewterMuseumPlayer[];
-extern uint8_t RLEList_PewterMuseumGuy[];
-extern uint8_t RLEList_PewterGymPlayer[];
-extern uint8_t RLEList_PewterGymGuy[];
-extern void IsPlayerStandingOnDoorTile(void);
-extern void StartSimulatingJoypadStates(void);
-extern void DecodeRLEList(uint8_t* dst, const uint8_t* src);
-extern void PlaySound(void);
-extern void FillMemory(void);
-extern void MoveSprite(void);
-extern void PewterGuys(void);
-extern void HideObject(void);
-extern void EndNPCMovementScript(void);
+extern uint8_t hNPCMovementDirections2Index;
+extern uint8_t wNPCMovementDirections2;
+extern uint8_t wMissableObjectIndex;
+extern uint8_t rOBP1;
+
+// Function prototypes
+void IsPlayerStandingOnDoorTile(void);
+void StartSimulatingJoypadStates(void);
+void FillMemory(uint8_t value);
+void MoveSprite(void);
+void PlaySound(void);
+void DecodeRLEList(uint8_t* dst, const uint8_t* src);
+void HideObject(void);
+void PewterGuys(void);
 
 // Constants
 #define BIT_EXITING_DOOR 0
@@ -44,6 +42,69 @@ extern void EndNPCMovementScript(void);
 #define BIT_INIT_SCRIPTED_MOVEMENT 3
 #define BIT_NO_MAP_MUSIC 4
 #define BIT_SCRIPTED_NPC_MOVEMENT 5
+
+// Data arrays
+const uint8_t RivalIDs[] = {
+    OPP_RIVAL1,
+    OPP_RIVAL2,
+    OPP_RIVAL3,
+    -1 // end
+};
+
+const uint8_t RLEList_ProfOakWalkToLab[] = {
+    NPC_MOVEMENT_DOWN, 5,
+    NPC_MOVEMENT_LEFT, 1,
+    NPC_MOVEMENT_DOWN, 5,
+    NPC_MOVEMENT_RIGHT, 3,
+    NPC_MOVEMENT_UP, 1,
+    NPC_CHANGE_FACING, 1,
+    -1 // end
+};
+
+const uint8_t RLEList_PlayerWalkToLab[] = {
+    D_UP, 2,
+    D_RIGHT, 3,
+    D_DOWN, 5,
+    D_LEFT, 1,
+    D_DOWN, 6,
+    -1 // end
+};
+
+const uint8_t RLEList_PewterMuseumPlayer[] = {
+    NO_INPUT, 1,
+    D_UP, 3,
+    D_LEFT, 13,
+    D_UP, 6,
+    -1 // end
+};
+
+const uint8_t RLEList_PewterMuseumGuy[] = {
+    NPC_MOVEMENT_UP, 6,
+    NPC_MOVEMENT_LEFT, 13,
+    NPC_MOVEMENT_UP, 3,
+    NPC_MOVEMENT_LEFT, 1,
+    -1 // end
+};
+
+const uint8_t RLEList_PewterGymPlayer[] = {
+    NO_INPUT, 1,
+    D_RIGHT, 2,
+    D_DOWN, 5,
+    D_LEFT, 11,
+    D_UP, 5,
+    D_LEFT, 15,
+    -1 // end
+};
+
+const uint8_t RLEList_PewterGymGuy[] = {
+    NPC_MOVEMENT_DOWN, 2,
+    NPC_MOVEMENT_LEFT, 15,
+    NPC_MOVEMENT_UP, 5,
+    NPC_MOVEMENT_LEFT, 11,
+    NPC_MOVEMENT_DOWN, 5,
+    NPC_MOVEMENT_RIGHT, 3,
+    -1 // end
+};
 
 // Function implementations
 void PlayerStepOutFromDoor(void) {
@@ -130,25 +191,15 @@ void _EndNPCMovementScript(void) {
     wUnusedOverrideSimulatedJoypadStatesIndex = a;
     // ld [wSimulatedJoypadStatesIndex], a
     wSimulatedJoypadStatesIndex = a;
-    // ld [wSimulatedJoypadStatesEnd], a
-    wSimulatedJoypadStatesEnd = a;
     // ret
     return;
 }
-
-const uint16_t PalletMovementScriptPointerTable[] = {
-    (uint16_t)PalletMovementScript_OakMoveLeft,
-    (uint16_t)PalletMovementScript_PlayerMoveLeft,
-    (uint16_t)PalletMovementScript_WaitAndWalkToLab,
-    (uint16_t)PalletMovementScript_WalkToLab,
-    (uint16_t)PalletMovementScript_Done,
-};
 
 void PalletMovementScript_OakMoveLeft(void) {
     // ld a, [wXCoord]
     uint8_t a = wXCoord;
     // sub $a
-    a -= a; // Assuming $a is the same as a
+    a -= a;
     // ld [wNumStepsToTake], a
     wNumStepsToTake = a;
     // jr z, .playerOnLeftTile
@@ -158,11 +209,11 @@ void PalletMovementScript_OakMoveLeft(void) {
     // ld c, a
     uint8_t c = a;
     // ld hl, wNPCMovementDirections2
-    uint8_t* hl = wNPCMovementDirections2;
+    uint8_t* hl = &wNPCMovementDirections2;
     // ld a, NPC_MOVEMENT_LEFT
     a = NPC_MOVEMENT_LEFT;
     // call FillMemory
-    FillMemory();
+    FillMemory(a);
     // ld [hl], $ff
     *hl = 0xFF;
     // ld a, [wSpriteIndex]
@@ -170,7 +221,7 @@ void PalletMovementScript_OakMoveLeft(void) {
     // ldh [hSpriteIndex], a
     hSpriteIndex = a;
     // ld de, wNPCMovementDirections2
-    uint8_t* de = wNPCMovementDirections2;
+    uint8_t* de = &wNPCMovementDirections2;
     // call MoveSprite
     MoveSprite();
     // ld a, $1
@@ -227,6 +278,8 @@ void PalletMovementScript_WaitAndWalkToLab(void) {
     uint8_t a = wSimulatedJoypadStatesIndex;
     // and a ; is the player done moving left yet?
     if (a != 0) return; // ret nz
+    // ret
+    return;
 }
 
 void PalletMovementScript_WalkToLab(void) {
@@ -237,7 +290,7 @@ void PalletMovementScript_WalkToLab(void) {
     // ld a, [wSpriteIndex]
     a = wSpriteIndex;
     // swap a
-    a = (a << 4) | (a >> 4); // Simulate swap
+    a = (a << 4) | (a >> 4);
     // ld [wNPCMovementScriptSpriteOffset], a
     wNPCMovementScriptSpriteOffset = a;
     // xor a
@@ -255,7 +308,7 @@ void PalletMovementScript_WalkToLab(void) {
     // ld [wSimulatedJoypadStatesIndex], a
     wSimulatedJoypadStatesIndex = a;
     // ld hl, wNPCMovementDirections2
-    hl = wNPCMovementDirections2;
+    hl = &wNPCMovementDirections2;
     // ld de, RLEList_ProfOakWalkToLab
     de = RLEList_ProfOakWalkToLab;
     // call DecodeRLEList
@@ -275,25 +328,6 @@ void PalletMovementScript_WalkToLab(void) {
     // ret
     return;
 }
-
-const uint8_t RLEList_ProfOakWalkToLab[] = {
-    NPC_MOVEMENT_DOWN, 5,
-    NPC_MOVEMENT_LEFT, 1,
-    NPC_MOVEMENT_DOWN, 5,
-    NPC_MOVEMENT_RIGHT, 3,
-    NPC_MOVEMENT_UP, 1,
-    NPC_CHANGE_FACING, 1,
-    -1 // end
-};
-
-const uint8_t RLEList_PlayerWalkToLab[] = {
-    D_UP, 2,
-    D_RIGHT, 3,
-    D_DOWN, 5,
-    D_LEFT, 1,
-    D_DOWN, 6,
-    -1 // end
-};
 
 void PalletMovementScript_Done(void) {
     // ld a, [wSimulatedJoypadStatesIndex]
@@ -315,13 +349,8 @@ void PalletMovementScript_Done(void) {
     // res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
     *hl &= ~(1 << BIT_INIT_SCRIPTED_MOVEMENT);
     // jp EndNPCMovementScript
-    EndNPCMovementScript();
+    _EndNPCMovementScript();
 }
-
-const uint16_t PewterMuseumGuyMovementScriptPointerTable[] = {
-    (uint16_t)PewterMovementScript_WalkToMuseum,
-    (uint16_t)PewterMovementScript_Done,
-};
 
 void PewterMovementScript_WalkToMuseum(void) {
     // ld a, BANK(Music_MuseumGuy)
@@ -339,7 +368,7 @@ void PewterMovementScript_WalkToMuseum(void) {
     // ld a, [wSpriteIndex]
     a = wSpriteIndex;
     // swap a
-    a = (a << 4) | (a >> 4); // Simulate swap
+    a = (a << 4) | (a >> 4);
     // ld [wNPCMovementScriptSpriteOffset], a
     wNPCMovementScriptSpriteOffset = a;
     // call StartSimulatingJoypadStates
@@ -361,7 +390,7 @@ void PewterMovementScript_WalkToMuseum(void) {
     // predef PewterGuys
     PewterGuys();
     // ld hl, wNPCMovementDirections2
-    hl = wNPCMovementDirections2;
+    hl = &wNPCMovementDirections2;
     // ld de, RLEList_PewterMuseumGuy
     de = RLEList_PewterMuseumGuy;
     // call DecodeRLEList
@@ -378,22 +407,6 @@ void PewterMovementScript_WalkToMuseum(void) {
     return;
 }
 
-const uint8_t RLEList_PewterMuseumPlayer[] = {
-    NO_INPUT, 1,
-    D_UP, 3,
-    D_LEFT, 13,
-    D_UP, 6,
-    -1 // end
-};
-
-const uint8_t RLEList_PewterMuseumGuy[] = {
-    NPC_MOVEMENT_UP, 6,
-    NPC_MOVEMENT_LEFT, 13,
-    NPC_MOVEMENT_UP, 3,
-    NPC_MOVEMENT_LEFT, 1,
-    -1 // end
-};
-
 void PewterMovementScript_Done(void) {
     // ld a, [wSimulatedJoypadStatesIndex]
     uint8_t a = wSimulatedJoypadStatesIndex;
@@ -408,17 +421,22 @@ void PewterMovementScript_Done(void) {
     // res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
     *hl &= ~(1 << BIT_INIT_SCRIPTED_MOVEMENT);
     // jp EndNPCMovementScript
-    EndNPCMovementScript();
+    _EndNPCMovementScript();
 }
-
-const uint16_t PewterGymGuyMovementScriptPointerTable[] = {
-    (uint16_t)PewterMovementScript_WalkToGym,
-    (uint16_t)PewterMovementScript_Done,
-};
 
 void PewterMovementScript_WalkToGym(void) {
     // ld a, BANK(Music_MuseumGuy)
     uint8_t a = BANK(Music_MuseumGuy);
     // ld [wAudioROMBank], a
     wAudioROMBank = a;
-    // ld [
+    // ld [wAudioSavedROMBank], a
+    wAudioSavedROMBank = a;
+    // ld a, MUSIC_MUSEUM_GUY
+    a = MUSIC_MUSEUM_GUY;
+    // ld [wNewSoundID], a
+    wNewSoundID = a;
+    // call PlaySound
+    PlaySound();
+    // ld a, [wSpriteIndex]
+    a = wSpriteIndex;
+    // swap a

@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: dust_smoke.asm ===
+Timestamp: 2025-06-03 15:15:26
+
+Functional similarity: 49.1%
+Overall similarity: 45.9%
+Original lines: 81
+Compiled lines: 33
+Perfect match: False
+Grade: F
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  AnimateBoulderDust:
+   Compiled:  SSAnneSmokePuffTile:
+
+2. Line 2 mismatch:
+   Original:  ld a, $1
+   Compiled:  db /* gfx/overworld/smoke.2bpp */
+
+3. Line 3 mismatch:
+   Original:  ld [wWhichAnimationOffsets], a
+   Compiled:  AnimateBoulderDust:
+
+4. Line 4 mismatch:
+   Original:  ld a, [wUpdateSpritesEnabled]
+   Compiled:  ld a, $1
+
+5. Line 5 mismatch:
+   Original:  push af
+   Compiled:  ld [wWhichAnimationOffsets], a
+
+6. Line 6 mismatch:
+   Original:  ld a, $ff
+   Compiled:  ld a, [wUpdateSpritesEnabled]
+
+7. Line 7 mismatch:
+   Original:  ld [wUpdateSpritesEnabled], a
+   Compiled:  push af
+
+8. Line 8 mismatch:
+   Original:  ld a, %11100100
+   Compiled:  ld a, $ff
+
+9. Line 9 mismatch:
+   Original:  ldh [rOBP1], a
+   Compiled:  ld [wUpdateSpritesEnabled], a
+
+10. Line 10 mismatch:
+   Original:  call LoadSmokeTileFourTimes
+   Compiled:  ld a, %11100100
+
+11. Missing in compiled (5 lines):
+   ld c, a
+   ld b, $0
+   add hl, bc
+   ld a, [hli]
+   ld [wCoordAdjustmentAmount], a
+

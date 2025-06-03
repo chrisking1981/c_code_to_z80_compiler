@@ -1,0 +1,92 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 5 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 84.2%
+Overall similarity: 80.5%
+Line count - Original: 266, Compiled: 214
+❌ 10 functional differences found
+  Line 51:
+    Original:  PalletMovementScript_OakMoveLeft:
+    Compiled:  PalletMovementScriptPointerTable::
+  Line 52:
+    Original:  ld a, [wXCoord]
+    Compiled:  dw PalletMovementScript_OakMoveLeft
+  Line 53:
+    Original:  sub $a
+    Compiled:  dw PalletMovementScript_PlayerMoveLeft
+
+📄 cut.asm
+----------------------------------------
+Functional similarity: 41.2%
+Overall similarity: 38.6%
+Line count - Original: 233, Compiled: 63
+❌ 10 functional differences found
+  Line 8:
+    Original:  jr nz, .nothingToCut
+    Compiled:  ld a, [wTileInFrontOfPlayer]
+  Line 9:
+    Original:  ld a, [wTileInFrontOfPlayer]
+    Compiled:  cp $50
+  Line 10:
+    Original:  cp $50
+    Compiled:  jr nz, .nothingToCut
+
+📄 dust_smoke.asm
+----------------------------------------
+Functional similarity: 49.1%
+Overall similarity: 45.9%
+Line count - Original: 81, Compiled: 33
+❌ 10 functional differences found
+  Line 1:
+    Original:  AnimateBoulderDust:
+    Compiled:  SSAnneSmokePuffTile:
+  Line 2:
+    Original:  ld a, $1
+    Compiled:  db /* gfx/overworld/smoke.2bpp */
+  Line 3:
+    Original:  ld [wWhichAnimationOffsets], a
+    Compiled:  AnimateBoulderDust:
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 97.7%
+Overall similarity: 95.7%
+Line count - Original: 67, Compiled: 64
+❌ 10 functional differences found
+  Line 13:
+    Original:  .shakeLoop
+    Compiled:  ld a, e
+  Line 14:
+    Original:  ld a, e
+    Compiled:  xor $fe
+  Line 15:
+    Original:  xor $fe
+    Compiled:  ld e, a
+
+📄 emotion_bubbles.asm
+----------------------------------------
+Functional similarity: 40.7%
+Overall similarity: 37.4%
+Line count - Original: 69, Compiled: 39
+❌ 10 functional differences found
+  Line 1:
+    Original:  EmotionBubble:
+    Compiled:  EmotionBubblesPointerTable::
+  Line 2:
+    Original:  ld a, [wWhichEmotionBubble]
+    Compiled:  dw ShockEmote
+  Line 3:
+    Original:  ld c, a
+    Compiled:  dw QuestionEmote
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 5
+Perfect matches: 0/5
+Average functional similarity: 62.6%
+Overall grade: C-
+⚠️  FAIR - Major improvements needed

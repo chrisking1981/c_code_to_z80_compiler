@@ -1,0 +1,92 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 5 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 71.2%
+Overall similarity: 70.1%
+Line count - Original: 266, Compiled: 223
+❌ 10 functional differences found
+  Line 1:
+    Original:  PlayerStepOutFromDoor::
+    Compiled:  RivalIDs:
+  Line 2:
+    Original:  ld hl, wStatusFlags5
+    Compiled:  db OPP_RIVAL1
+  Line 3:
+    Original:  res BIT_EXITING_DOOR, [hl]
+    Compiled:  db OPP_RIVAL2
+
+📄 cut.asm
+----------------------------------------
+Functional similarity: 55.7%
+Overall similarity: 52.1%
+Line count - Original: 233, Compiled: 101
+❌ 10 functional differences found
+  Line 1:
+    Original:  UsedCut:
+    Compiled:  CutAnimationOffsets:
+  Line 2:
+    Original:  xor a
+    Compiled:  db 8, $24
+  Line 3:
+    Original:  ld [wActionResultOrTookBattleTurn], a
+    Compiled:  db 4, $14
+
+📄 dust_smoke.asm
+----------------------------------------
+Functional similarity: 80.0%
+Overall similarity: 76.2%
+Line count - Original: 81, Compiled: 69
+❌ 10 functional differences found
+  Line 1:
+    Original:  AnimateBoulderDust:
+    Compiled:  SSAnneSmokePuffTile:
+  Line 2:
+    Original:  ld a, $1
+    Compiled:  db /* gfx/overworld/smoke.2bpp */
+  Line 3:
+    Original:  ld [wWhichAnimationOffsets], a
+    Compiled:  AnimateBoulderDust:
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 97.7%
+Overall similarity: 95.7%
+Line count - Original: 67, Compiled: 64
+❌ 10 functional differences found
+  Line 13:
+    Original:  .shakeLoop
+    Compiled:  ld a, e
+  Line 14:
+    Original:  ld a, e
+    Compiled:  xor $fe
+  Line 15:
+    Original:  xor $fe
+    Compiled:  ld e, a
+
+📄 emotion_bubbles.asm
+----------------------------------------
+Functional similarity: 79.4%
+Overall similarity: 73.5%
+Line count - Original: 69, Compiled: 72
+❌ 10 functional differences found
+  Line 27:
+    Original:  .loop
+    Compiled:  ..loop
+  Line 57:
+    Original:  EmotionBubblesPointerTable:
+    Compiled:  EmotionBubblesPointerTable::
+  Line 58:
+    Original:  dw ShockEmote
+    Compiled:  dw &ShockEmote
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 5
+Perfect matches: 0/5
+Average functional similarity: 76.8%
+Overall grade: B-
+🔧 GOOD - Some issues to fix

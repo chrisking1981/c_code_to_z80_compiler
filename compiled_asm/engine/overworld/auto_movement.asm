@@ -218,4 +218,9 @@ PewterGymGuyMovementScriptPointerTable::
 PewterMovementScript_WalkToGym:
 	ld a, BANK(Music_MuseumGuy)
 	ld [wAudioROMBank], a
-	ld [
+	ld [wAudioSavedROMBank], a
+	ld a, MUSIC_MUSEUM_GUY
+	ld [wNewSoundID], a
+	call PlaySound
+	ld a, [wSpriteIndex]
+	swap a

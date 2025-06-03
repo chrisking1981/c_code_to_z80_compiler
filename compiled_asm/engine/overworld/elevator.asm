@@ -33,8 +33,8 @@ ShakeElevator::
 	call PlayMusic
 	ld a, [wChannelSoundIDs + CHAN5]
 	cp SFX_SAFARI_ZONE_PA
-	jr z, .musicLoop
-
+	call UpdateSprites
+	jp PlayDefaultMusic
 
 ShakeElevatorRedrawRow:
 	ld hl, wMapViewVRAMPointer + 1

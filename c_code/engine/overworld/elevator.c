@@ -13,144 +13,141 @@ extern uint8_t wChannelSoundIDs[];
 extern uint8_t SFX_STOP_ALL_MUSIC;
 extern uint8_t SFX_COLLISION;
 extern uint8_t SFX_SAFARI_ZONE_PA;
-extern uint8_t SCREEN_HEIGHT;
-extern uint8_t wMapViewVRAMPointer;
+extern uint8_t BANK(uint8_t sound);
 
 // Constants
-#define SFX_Collision_1 0x01 // Placeholder for actual sound effect ID
-#define CHAN5 0x05 // Placeholder for actual channel ID
+#define SCREEN_HEIGHT 18
+#define CHAN5 5
 
 void ShakeElevator(void) {
     // ld de, -$20
-    int16_t de = -0x20;
+    uint16_t de = -0x20; 
     // call ShakeElevatorRedrawRow
     ShakeElevatorRedrawRow();
     // ld de, SCREEN_HEIGHT * $20
-    de = SCREEN_HEIGHT * 0x20;
+    de = SCREEN_HEIGHT * 0x20; 
     // call ShakeElevatorRedrawRow
     ShakeElevatorRedrawRow();
     // call Delay3
     Delay3();
     // ld a, SFX_STOP_ALL_MUSIC
-    uint8_t a = SFX_STOP_ALL_MUSIC;
+    uint8_t a = SFX_STOP_ALL_MUSIC; 
     // call PlaySound
     PlaySound(a);
     // ldh a, [hSCY]
-    a = hSCY;
+    a = hSCY; 
     // ld d, a
-    uint8_t d = a;
+    uint8_t d = a; 
     // ld e, $1
-    uint8_t e = 0x1;
+    uint8_t e = 0x1; 
     // ld b, 100
-    uint8_t b = 100;
+    uint8_t b = 100; 
 .shakeLoop: // .shakeLoop
     // ld a, e
-    a = e;
+    a = e; 
     // xor $fe
-    a ^= 0xFE;
+    a ^= 0xFE; 
     // ld e, a
-    e = a;
+    e = a; 
     // add d
-    d += e;
+    d += e; 
     // ldh [hSCY], a
-    hSCY = a;
+    hSCY = a; 
     // push bc
-    uint8_t saved_c = b; // Simulating push bc
+    uint8_t saved_b = b; 
+    uint8_t saved_c = 0; // bc is not used, but we need to save it
     // ld c, BANK(SFX_Collision_1)
-    uint8_t c = SFX_Collision_1; // Placeholder for BANK macro
+    saved_c = BANK(SFX_COLLISION); 
     // ld a, SFX_COLLISION
-    a = SFX_COLLISION;
+    a = SFX_COLLISION; 
     // call PlayMusic
     PlayMusic(a);
     // pop bc
-    b = saved_c; // Simulating pop bc
+    b = saved_b; 
     // ld c, 2
-    c = 2;
+    c = 2; 
     // call DelayFrames
-    Delay3(); // Placeholder for DelayFrames
+    DelayFrames();
     // dec b
-    b--;
+    b--; 
     // jr nz, .shakeLoop
-    if (b != 0) goto shakeLoop;
+    if (b != 0) goto .shakeLoop; 
     // ld a, d
-    a = d;
+    a = d; 
     // ldh [hSCY], a
-    hSCY = a;
+    hSCY = a; 
     // ld a, SFX_STOP_ALL_MUSIC
-    a = SFX_STOP_ALL_MUSIC;
+    a = SFX_STOP_ALL_MUSIC; 
     // call PlaySound
-    PlaySound(a);
+    PlaySound(a); 
     // ld c, BANK(SFX_Safari_Zone_PA)
-    c = SFX_Safari_Zone_PA; // Placeholder for BANK macro
+    c = BANK(SFX_SAFARI_ZONE_PA); 
     // ld a, SFX_SAFARI_ZONE_PA
-    a = SFX_SAFARI_ZONE_PA;
+    a = SFX_SAFARI_ZONE_PA; 
     // call PlayMusic
-    PlayMusic(a);
+    PlayMusic(a); 
 .musicLoop: // .musicLoop
     // ld a, [wChannelSoundIDs + CHAN5]
-    a = wChannelSoundIDs[CHAN5];
+    a = wChannelSoundIDs[CHAN5]; 
     // cp SFX_SAFARI_ZONE_PA
-    if (a == SFX_SAFARI_ZONE_PA) {
-        // jr z, .musicLoop
-        goto musicLoop;
-    }
+    if (a == SFX_SAFARI_ZONE_PA) goto .musicLoop; 
     // call UpdateSprites
-    UpdateSprites();
+    UpdateSprites(); 
     // jp PlayDefaultMusic
     PlayDefaultMusic(); /* jp */
 }
 
 void ShakeElevatorRedrawRow(void) {
     // ld hl, wMapViewVRAMPointer + 1
-    uint8_t* hl = wMapViewVRAMPointer + 1;
+    uint16_t hl = wMapViewVRAMPointer + 1; 
     // ld a, [hld]
-    uint8_t a = *hl; // Simulating [hld]
+    uint8_t a = *(uint8_t*)hl; 
     // push af
-    uint8_t saved_a = a; // Simulating push af
+    uint8_t saved_a = a; 
     // ld a, [hl]
-    a = *hl;
+    a = *(uint8_t*)hl; 
     // push af
-    saved_a = a; // Simulating push af
+    saved_a = a; 
     // push hl
-    uint8_t* saved_hl = hl; // Simulating push hl
+    uint16_t saved_hl = hl; 
     // push hl
-    saved_hl = hl; // Simulating push hl
+    saved_hl = hl; 
     // ld a, [hli]
-    a = *hl++; // Simulating [hli]
+    a = *(uint8_t*)(hl++); 
     // ld h, [hl]
-    uint8_t h = *hl;
+    uint8_t h = *(uint8_t*)hl; 
     // ld l, a
-    uint8_t l = a;
+    uint8_t l = a; 
     // add hl, de
-    hl += de; // Pointer arithmetic
+    hl += de; 
     // ld a, h
-    a = h;
+    a = h; 
     // and $3
-    a &= 0x03;
+    a &= 0x3; 
     // or HIGH(vBGMap0)
-    a |= HIGH(vBGMap0); // Placeholder for HIGH macro
+    a |= HIGH(vBGMap0); 
     // ld d, a
-    d = a;
+    d = a; 
     // ld a, l
-    a = l;
+    a = l; 
     // pop hl
-    hl = saved_hl; // Simulating pop hl
+    hl = saved_hl; 
     // ld [hli], a
-    *hl++ = a; // Simulating [hli]
+    *(uint8_t*)(hl++) = a; 
     // ld [hl], d
-    *hl = d; // Simulating [hl]
+    *(uint8_t*)hl = d; 
     // call ScheduleNorthRowRedraw
-    ScheduleNorthRowRedraw();
+    ScheduleNorthRowRedraw(); 
     // pop hl
-    hl = saved_hl; // Simulating pop hl
+    hl = saved_hl; 
     // pop af
-    a = saved_a; // Simulating pop af
+    a = saved_a; 
     // ld [hli], a
-    *hl++ = a; // Simulating [hli]
+    *(uint8_t*)(hl++) = a; 
     // pop af
-    a = saved_a; // Simulating pop af
+    a = saved_a; 
     // ld [hl], a
-    *hl = a; // Simulating [hl]
+    *(uint8_t*)hl = a; 
     // jp Delay3
     Delay3(); /* jp */
 }
