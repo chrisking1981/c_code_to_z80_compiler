@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: auto_movement.asm ===
+Timestamp: 2025-06-03 12:12:33
+
+Functional similarity: 36.8%
+Overall similarity: 35.2%
+Original lines: 266
+Compiled lines: 60
+Perfect match: False
+Grade: F
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  PlayerStepOutFromDoor::
+   Compiled:  PalletMovementScriptPointerTable::
+
+2. Line 2 mismatch:
+   Original:  ld hl, wStatusFlags5
+   Compiled:  dw PalletMovementScript_OakMoveLeft
+
+3. Line 3 mismatch:
+   Original:  res BIT_EXITING_DOOR, [hl]
+   Compiled:  dw PalletMovementScript_PlayerMoveLeft
+
+4. Line 4 mismatch:
+   Original:  call IsPlayerStandingOnDoorTile
+   Compiled:  dw PalletMovementScript_WaitAndWalkToLab
+
+5. Line 5 mismatch:
+   Original:  jr nc, .notStandingOnDoor
+   Compiled:  dw PalletMovementScript_WalkToLab
+
+6. Line 6 mismatch:
+   Original:  ld a, SELECT | START | D_RIGHT | D_LEFT | D_UP | D_DOWN
+   Compiled:  dw PalletMovementScript_Done
+
+7. Line 7 mismatch:
+   Original:  ld [wJoyIgnore], a
+   Compiled:  RLEList_ProfOakWalkToLab:
+
+8. Line 8 mismatch:
+   Original:  ld hl, wMovementFlags
+   Compiled:  db NPC_MOVEMENT_DOWN, 5
+
+9. Line 9 mismatch:
+   Original:  set BIT_EXITING_DOOR, [hl]
+   Compiled:  db NPC_MOVEMENT_LEFT, 1
+
+10. Line 10 mismatch:
+   Original:  ld a, $1
+   Compiled:  db NPC_MOVEMENT_DOWN, 5
+
+11. Missing in compiled (5 lines):
+   ld [hl], $ff
+   ld a, [wSpriteIndex]
+   ldh [hSpriteIndex], a
+   ld de, wNPCMovementDirections2
+   call MoveSprite
+

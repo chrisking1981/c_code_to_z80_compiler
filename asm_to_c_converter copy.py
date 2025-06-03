@@ -191,60 +191,126 @@ BELANGRIJK voor correcte compilatie:
     
     def create_conversion_prompt(self, asm_content: str, filename: str) -> str:
         """Create the LLM prompt for ASM to C conversion"""
-        prompt = f"""Je bent een expert Game Boy assembly naar C code converter voor het pokered project.
+        prompt = f"""You are an expert Game Boy Z80 assembly to C code converter specializing in the pokered project codebase.
 
-DOEL: Converteer de volgende Z80 assembly code naar functionele C code die byte-voor-byte identiek gedrag oplevert.
+CRITICAL MISSION: Convert the following Z80 assembly code into functionally identical C code that compiles back to byte-perfect assembly.
 
-=== CONVERSION RULES ===
-{self.conversion_rules}
+=== CORE PRINCIPLES ===
+1. PRESERVE EXACT BEHAVIOR - Every register operation, memory access, and control flow must be identical
+2. NO OPTIMIZATIONS - Mirror the assembly logic exactly, don't "improve" it
+3. MAINTAIN POKERED CONVENTIONS - Use exact same variable/function names as the pokered project
+4. REGISTER SIMULATION - Track register state changes precisely
 
-=== C CODE PATTERNS ===  
-{self.c_patterns}
+=== CONVERSION MAPPING TABLE ===
 
-=== SPECIFIEKE EISEN ===
-1. Gebruik ALTIJD -1 in plaats van 0xFF voor eindmarkeringen in arrays
-2. Voor function pointer tables: gebruik :: in plaats van : voor labels
-3. Behoud alle assembly comments als // comments boven elke C regel
-4. Voor PrintText calls: gebruik /* jp */ annotatie
-5. Voor farcall: gebruik /* farcall */ annotatie  
-6. Voor predef: gebruik /* predef */ annotatie
-7. Local labels worden .labelname in assembly
+REGISTERS & MEMORY:
+• ld a, [address] → uint8_t a = address;
+• ld [address], a → address = a;
+• xor a → uint8_t a = 0;
+• ld b, a → uint8_t b = a;
+• inc a → a++;
+• dec a → a--;
+• add a → a += a; (double the value)
+• add b → a += b;
+• sub b → a -= b;
+• cp VALUE → /* cp VALUE */ (comparison for next conditional)
+• swap a → a = (a << 4) | (a >> 4);
 
-=== KRITIEKE VEREISTE ===
-CONVERTEER ALLEEN DE SECTIES DIE ECHT IN DIT ASM BESTAND STAAN!
+CONTROL FLOW:
+• call FunctionName → FunctionName(); /* call */
+• farcall BankX::Function → Function(); /* farcall BankX::Function */
+• jp FunctionName → FunctionName(); /* jp */
+• jr .localLabel → goto localLabel;
+• jr z, .label → if (a == 0) goto label;
+• jr nz, .label → if (a != 0) goto label;
+• jr c, .label → if (carry_flag) goto label;
+• ret → return;
+• ret z → if (a == 0) return;
+• ret nz → if (a != 0) return;
 
-GRAPHICS SECTIES ALLEEN ALS ZE IN DE SOURCE STAAN:
-Als je INCBIN statements ziet in de ASM source zoals:
-SomeLabel:    INCBIN "gfx/path/file.2bpp"
+BIT OPERATIONS:
+• res BIT_NUM, [address] → address &= ~(1 << BIT_NUM);
+• set BIT_NUM, [address] → address |= (1 << BIT_NUM);
+• bit BIT_NUM, a → /* bit test for next conditional */
 
-Dan genereer je C code als:
-// SomeLabel: INCBIN "gfx/path/file.2bpp"  
-const uint8_t SomeLabel_INCBIN[] = {{ /* gfx/path/file.2bpp */ }};
+STACK OPERATIONS:
+• push bc → /* push bc */ (simulate with temp vars if needed)
+• pop bc → /* pop bc */ (restore from temp vars)
 
-ALLEEN als er een marker-only label staat (zonder INCBIN), gebruik dan:
-// SomeLabel:
-const uint8_t SomeLabel_MARKER = 0;
+=== LOCAL LABELS HANDLING ===
+Labels starting with '.' are LOCAL LABELS within the current function, NOT separate functions!
 
-BELANGRIJK: Voeg GEEN graphics secties toe die niet in de originele ASM source staan!
+EXAMPLE: Local label conversion pattern:
+ASM Input:
+SomeFunction::
+    ld a, [wValue]
+    call .checkValue
+    ret
+.checkValue
+    cp 5
+    ret z
+    inc a
+    ret
 
-=== ASM BESTAND: {filename} ===
-```asm
+C Output:
+void SomeFunction(void) {{
+    uint8_t a = wValue;
+    goto checkValue;
+    return;
+checkValue:
+    /* cp 5 */
+    if (a == 5) return;
+    a++;
+    return;
+}}
+
+=== FUNCTION POINTER TABLES ===
+For data tables with function pointers, use '::' suffix for labels and -1 termination.
+
+=== GRAPHICS DATA HANDLING ===
+ONLY include graphics sections that ACTUALLY EXIST in the source ASM!
+
+For INCBIN statements: Convert to const uint8_t arrays with _INCBIN suffix
+For marker labels: Convert to const uint8_t with _MARKER suffix
+
+=== TEXT HANDLING ===
+For text sections: Convert to function calls with PrintText and /* jp */ annotation
+
+=== ARRAY ENDINGS ===
+Always use -1 instead of 0xFF for array termination in C code.
+
+=== REQUIRED INCLUDES & DECLARATIONS ===
+Always include stdint.h and relevant pokered constant headers.
+Add extern declarations for variables and functions used.
+
+=== QUALITY CHECKLIST ===
+Before finalizing, verify:
+☐ Every ASM line has a corresponding C line with comment
+☐ All register operations are properly simulated
+☐ Local labels use goto, not function calls
+☐ Function pointer tables use :: syntax
+☐ Arrays end with -1 instead of 0xFF
+☐ No graphics sections added that aren't in source
+☐ All required extern declarations included
+☐ Proper include statements at top
+
+=== SOURCE FILE TO CONVERT ===
+File: {filename}
+
 {asm_content}
-```
 
-=== GEWENSTE OUTPUT ===
-Genereer de COMPLETE C code met:
-1. Alle benodigde #include statements
-2. Extern declarations voor variabelen/functies  
-3. Constanten/defines
-4. De functie implementaties
-5. Data arrays (gebruik -1 voor eindmarkeringen!)
-6. **ALLEEN graphics secties die echt in de ASM source staan**
+=== EXPECTED OUTPUT FORMAT ===
+Generate ONLY the complete, compilable C code with:
+1. All necessary #include statements
+2. All extern declarations needed
+3. All constant definitions
+4. The complete function implementations
+5. Data tables/arrays (if any)
+6. Graphics data sections (ONLY if present in source)
 
-BELANGRIJK: Converteer ELKE regel van de ASM file, maar voeg NIETS toe dat er niet in staat!
+NO EXPLANATIONS, NO MARKDOWN, JUST CLEAN C CODE READY TO COMPILE.
 
-Geen extra uitleg, alleen de C code die direct kan worden gecompileerd.
-"""
+The C code must compile back to functionally identical assembly that achieves 95%+ similarity with the original."""
         return prompt
     
     def call_llm_api(self, prompt: str, model: str = "gpt-4o") -> Optional[str]:

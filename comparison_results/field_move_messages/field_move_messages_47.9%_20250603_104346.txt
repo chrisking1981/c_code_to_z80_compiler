@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: field_move_messages.asm ===
+Timestamp: 2025-06-03 10:43:46
+
+Functional similarity: 47.9%
+Overall similarity: 44.4%
+Original lines: 49
+Compiled lines: 22
+Perfect match: False
+Grade: F
+
+=== DIFFERENCES ===
+1. Line 10 mismatch:
+   Original:  text_asm
+   Compiled:  text_end
+
+2. Line 11 mismatch:
+   Original:  ld a, [wCurPartySpecies]
+   Compiled:  IsSurfingAllowed:
+
+3. Line 12 mismatch:
+   Original:  call PlayCry
+   Compiled:  ld hl, wStatusFlags1
+
+4. Line 13 mismatch:
+   Original:  call Delay3
+   Compiled:  set BIT_SURF_ALLOWED, [hl]
+
+5. Line 14 mismatch:
+   Original:  jp TextScriptEnd
+   Compiled:  ld a, [wStatusFlags6]
+
+6. Line 15 mismatch:
+   Original:  CanMoveBouldersText:
+   Compiled:  bit BIT_ALWAYS_ON_BIKE, a
+
+7. Line 16 mismatch:
+   Original:  text_far _CanMoveBouldersText
+   Compiled:  jr nz, .forcedToRideBike
+
+8. Line 17 mismatch:
+   Original:  text_end
+   Compiled:  SeafoamIslandsB4FStairsCoords:
+
+9. Line 18 mismatch:
+   Original:  IsSurfingAllowed:
+   Compiled:  db 7, 11, -1
+
+10. Line 19 mismatch:
+   Original:  ld hl, wStatusFlags1
+   Compiled:  QuestionEmote:
+
+11. Missing in compiled (5 lines):
+   jr nz, .forcedToRideBike
+   ld a, [wCurMap]
+   cp SEAFOAM_ISLANDS_B4F
+   ret nz
+   CheckBothEventsSet EVENT_SEAFOAM4_BOULDER1_DOWN_HOLE, EVENT_SEAFOAM4_BOULDER2_DOWN_HOLE
+

@@ -1,0 +1,39 @@
+=== DETAILED COMPARISON: is_player_just_outside_map.asm ===
+Timestamp: 2025-06-03 10:43:46
+
+Functional similarity: 81.2%
+Overall similarity: 80.0%
+Original lines: 15
+Compiled lines: 17
+Perfect match: False
+Grade: B
+
+=== DIFFERENCES ===
+1. Line 10 mismatch:
+   Original:  .compareCoordWithMapDimension
+   Compiled:  add a
+
+2. Line 11 mismatch:
+   Original:  add a
+   Compiled:  cp b
+
+3. Line 12 mismatch:
+   Original:  cp b
+   Compiled:  inc b
+
+4. Line 13 mismatch:
+   Original:  ret z
+   Compiled:  ret
+
+5. Line 14 mismatch:
+   Original:  inc b
+   Compiled:  QuestionEmote:
+
+6. Line 15 mismatch:
+   Original:  ret
+   Compiled:  INCBIN "gfx/emotes/question.2bpp"
+
+7. Extra in compiled (2 lines):
+   HappyEmote:
+   INCBIN "gfx/emotes/happy.2bpp"
+

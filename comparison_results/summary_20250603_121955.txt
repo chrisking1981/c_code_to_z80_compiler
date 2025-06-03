@@ -1,0 +1,44 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 2 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 82.5%
+Overall similarity: 79.0%
+Line count - Original: 266, Compiled: 209
+❌ 10 functional differences found
+  Line 51:
+    Original:  PalletMovementScript_OakMoveLeft:
+    Compiled:  PalletMovementScriptPointerTable::
+  Line 52:
+    Original:  ld a, [wXCoord]
+    Compiled:  dw PalletMovementScript_OakMoveLeft
+  Line 53:
+    Original:  sub $a
+    Compiled:  dw PalletMovementScript_PlayerMoveLeft
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 96.9%
+Overall similarity: 94.2%
+Line count - Original: 67, Compiled: 63
+❌ 10 functional differences found
+  Line 13:
+    Original:  .shakeLoop
+    Compiled:  ld a, e
+  Line 14:
+    Original:  ld a, e
+    Compiled:  xor $fe
+  Line 15:
+    Original:  xor $fe
+    Compiled:  ld e, a
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 2
+Perfect matches: 0/2
+Average functional similarity: 89.7%
+Overall grade: B+
+✅ VERY GOOD - Minor differences only

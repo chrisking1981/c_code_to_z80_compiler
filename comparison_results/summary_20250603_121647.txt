@@ -1,0 +1,44 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 2 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 36.8%
+Overall similarity: 35.2%
+Line count - Original: 266, Compiled: 60
+❌ 10 functional differences found
+  Line 1:
+    Original:  PlayerStepOutFromDoor::
+    Compiled:  PalletMovementScriptPointerTable::
+  Line 2:
+    Original:  ld hl, wStatusFlags5
+    Compiled:  dw PalletMovementScript_OakMoveLeft
+  Line 3:
+    Original:  res BIT_EXITING_DOOR, [hl]
+    Compiled:  dw PalletMovementScript_PlayerMoveLeft
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 94.2%
+Overall similarity: 92.4%
+Line count - Original: 67, Compiled: 71
+❌ 10 functional differences found
+  Line 13:
+    Original:  .shakeLoop
+    Compiled:  ld a, e
+  Line 14:
+    Original:  ld a, e
+    Compiled:  xor $fe
+  Line 15:
+    Original:  xor $fe
+    Compiled:  ld e, a
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 2
+Perfect matches: 0/2
+Average functional similarity: 65.5%
+Overall grade: C
+⚠️  FAIR - Major improvements needed

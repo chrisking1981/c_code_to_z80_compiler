@@ -1,0 +1,154 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 10 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 100.0%
+Overall similarity: 93.5%
+Line count - Original: 266, Compiled: 266
+✅ PERFECT MATCH!
+
+📄 cut.asm
+----------------------------------------
+Functional similarity: 88.7%
+Overall similarity: 85.1%
+Line count - Original: 233, Compiled: 236
+❌ 10 functional differences found
+  Line 23:
+    Original:  .NothingToCutText
+    Compiled:  NothingToCutText:
+  Line 67:
+    Original:  UsedCutText:
+    Compiled:  InitCutAnimOAM:
+  Line 68:
+    Original:  text_far _UsedCutText
+    Compiled:  xor a
+
+📄 dust_smoke.asm
+----------------------------------------
+Functional similarity: 89.0%
+Overall similarity: 88.0%
+Line count - Original: 81, Compiled: 74
+❌ 10 functional differences found
+  Line 20:
+    Original:  .returnAddress
+    Compiled:  Call the function that was set up by GetMoveBoulderDustFunctionPointer
+  Line 21:
+    Original:  ldh a, [rOBP1]
+    Compiled:  .returnAddress
+  Line 22:
+    Original:  xor %01100100
+    Compiled:  ldh a, [rOBP1]
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 100.0%
+Overall similarity: 96.5%
+Line count - Original: 67, Compiled: 67
+✅ PERFECT MATCH!
+
+📄 emotion_bubbles.asm
+----------------------------------------
+Functional similarity: 81.2%
+Overall similarity: 75.0%
+Line count - Original: 69, Compiled: 69
+❌ 10 functional differences found
+  Line 27:
+    Original:  .loop
+    Compiled:  ..loop
+  Line 57:
+    Original:  EmotionBubblesPointerTable:
+    Compiled:  EmotionBubblesPointerTable::
+  Line 58:
+    Original:  dw ShockEmote
+    Compiled:  dw ShockEmote_INCBIN
+
+📄 field_move_messages.asm
+----------------------------------------
+Functional similarity: 47.9%
+Overall similarity: 44.4%
+Line count - Original: 49, Compiled: 22
+❌ 10 functional differences found
+  Line 10:
+    Original:  text_asm
+    Compiled:  text_end
+  Line 11:
+    Original:  ld a, [wCurPartySpecies]
+    Compiled:  IsSurfingAllowed:
+  Line 12:
+    Original:  call PlayCry
+    Compiled:  ld hl, wStatusFlags1
+
+📄 healing_machine.asm
+----------------------------------------
+Functional similarity: 71.6%
+Overall similarity: 68.6%
+Line count - Original: 91, Compiled: 71
+❌ 10 functional differences found
+  Line 23:
+    Original:  .waitLoop
+    Compiled:  ..waitLoop
+  Line 26:
+    Original:  jr nz, .waitLoop
+    Compiled:  ld a, [wPartyCount]
+  Line 27:
+    Original:  ld a, [wPartyCount]
+    Compiled:  ld b, a
+
+📄 hidden_objects.asm
+----------------------------------------
+Functional similarity: 0.0%
+Overall similarity: 4.3%
+Line count - Original: 126, Compiled: 4
+❌ 4 functional differences found
+  Line 1:
+    Original:  IsPlayerOnDungeonWarp::
+    Compiled:  QuestionEmote:
+  Line 2:
+    Original:  xor a
+    Compiled:  INCBIN "gfx/emotes/question.2bpp"
+  Line 3:
+    Original:  ld [wWhichDungeonWarp], a
+    Compiled:  HappyEmote:
+
+📄 is_player_just_outside_map.asm
+----------------------------------------
+Functional similarity: 81.2%
+Overall similarity: 80.0%
+Line count - Original: 15, Compiled: 17
+❌ 6 functional differences found
+  Line 10:
+    Original:  .compareCoordWithMapDimension
+    Compiled:  add a
+  Line 11:
+    Original:  add a
+    Compiled:  cp b
+  Line 12:
+    Original:  cp b
+    Compiled:  inc b
+
+📄 ledges.asm
+----------------------------------------
+Functional similarity: 62.5%
+Overall similarity: 61.8%
+Line count - Original: 74, Compiled: 54
+❌ 10 functional differences found
+  Line 1:
+    Original:  HandleLedges::
+    Compiled:  HandleLedges:
+  Line 4:
+    Original:  ret nz
+    Compiled:  ld a, [wCurMapTileset]
+  Line 5:
+    Original:  ld a, [wCurMapTileset]
+    Compiled:  and a
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 10
+Perfect matches: 2/10
+Average functional similarity: 72.2%
+Overall grade: C+
+🔧 GOOD - Some issues to fix

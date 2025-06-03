@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: healing_machine.asm ===
+Timestamp: 2025-06-03 10:43:46
+
+Functional similarity: 71.6%
+Overall similarity: 68.6%
+Original lines: 91
+Compiled lines: 71
+Perfect match: False
+Grade: C+
+
+=== DIFFERENCES ===
+1. Line 23 mismatch:
+   Original:  .waitLoop
+   Compiled:  ..waitLoop
+
+2. Line 26 mismatch:
+   Original:  jr nz, .waitLoop
+   Compiled:  ld a, [wPartyCount]
+
+3. Line 27 mismatch:
+   Original:  ld a, [wPartyCount]
+   Compiled:  ld b, a
+
+4. Line 28 mismatch:
+   Original:  ld b, a
+   Compiled:  ..partyLoop
+
+5. Line 29 mismatch:
+   Original:  .partyLoop
+   Compiled:  call CopyHealingMachineOAM
+
+6. Line 30 mismatch:
+   Original:  call CopyHealingMachineOAM
+   Compiled:  ld a, SFX_HEALING_MACHINE
+
+7. Line 31 mismatch:
+   Original:  ld a, SFX_HEALING_MACHINE
+   Compiled:  call PlaySound
+
+8. Line 32 mismatch:
+   Original:  call PlaySound
+   Compiled:  ld c, 30
+
+9. Line 33 mismatch:
+   Original:  ld c, 30
+   Compiled:  call DelayFrames
+
+10. Line 34 mismatch:
+   Original:  call DelayFrames
+   Compiled:  dec b
+
+11. Missing in compiled (5 lines):
+   dbsprite 6, 6, 0, 5, $7d, OAM_OBP1
+   dbsprite 7, 6, 0, 5, $7d, OAM_OBP1 | OAM_HFLIP
+   FlashSprite8Times:
+   ld b, 8
+   .loop
+

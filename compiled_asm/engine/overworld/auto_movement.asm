@@ -51,6 +51,12 @@ PalletMovementScriptPointerTable::
 	dw PalletMovementScript_WalkToLab
 	dw PalletMovementScript_Done
 
+PalletMovementScriptPointerTable::
+	dw PalletMovementScript_OakMoveLeft
+	dw PalletMovementScript_PlayerMoveLeft
+	dw PalletMovementScript_WaitAndWalkToLab
+	dw PalletMovementScript_WalkToLab
+	dw PalletMovementScript_Done
 PalletMovementScript_OakMoveLeft:
 	ld a, [wXCoord]
 	sub $a
@@ -82,7 +88,6 @@ PalletMovementScript_OakMoveLeft:
 PalletMovementScript_PlayerMoveLeft:
 	ld a, [wStatusFlags5]
 	bit BIT_SCRIPTED_NPC_MOVEMENT, a
-	ret nz
 	ld a, [wNumStepsToTake]
 	ld [wSimulatedJoypadStatesIndex], a
 	ldh [hNPCMovementDirections2Index], a
@@ -94,8 +99,7 @@ PalletMovementScript_PlayerMoveLeft:
 
 PalletMovementScript_WaitAndWalkToLab:
 	ld a, [wSimulatedJoypadStatesIndex]
-	and a
-	ret nz
+	and a ; is the player done moving left yet?
 
 PalletMovementScript_WalkToLab:
 	xor a
@@ -139,7 +143,6 @@ RLEList_PlayerWalkToLab:
 PalletMovementScript_Done:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
-	ret nz
 	ld a, HS_PALLET_TOWN_OAK
 	ld [wMissableObjectIndex], a
 	predef HideObject
@@ -153,6 +156,9 @@ PewterMuseumGuyMovementScriptPointerTable::
 	dw PewterMovementScript_WalkToMuseum
 	dw PewterMovementScript_Done
 
+PewterMuseumGuyMovementScriptPointerTable::
+	dw PewterMovementScript_WalkToMuseum
+	dw PewterMovementScript_Done
 PewterMovementScript_WalkToMuseum:
 	ld a, BANK(Music_MuseumGuy)
 	ld [wAudioROMBank], a
@@ -196,7 +202,6 @@ RLEList_PewterMuseumGuy:
 PewterMovementScript_Done:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
-	ret nz
 	ld hl, wStatusFlags5
 	res BIT_SCRIPTED_MOVEMENT_STATE, [hl]
 	ld hl, wStatusFlags4
@@ -207,74 +212,10 @@ PewterGymGuyMovementScriptPointerTable::
 	dw PewterMovementScript_WalkToGym
 	dw PewterMovementScript_Done
 
+PewterGymGuyMovementScriptPointerTable::
+	dw PewterMovementScript_WalkToGym
+	dw PewterMovementScript_Done
 PewterMovementScript_WalkToGym:
 	ld a, BANK(Music_MuseumGuy)
 	ld [wAudioROMBank], a
-	ld [wAudioSavedROMBank], a
-	ld a, MUSIC_MUSEUM_GUY
-	ld [wNewSoundID], a
-	call PlaySound
-	ld a, [wSpriteIndex]
-	swap a
-	ld [wNPCMovementScriptSpriteOffset], a
-	xor a
-	ld [wSpritePlayerStateData2MovementByte1], a
-	ld hl, wSimulatedJoypadStatesEnd
-	ld de, RLEList_PewterGymPlayer
-	call DecodeRLEList
-	dec a
-	ld [wSimulatedJoypadStatesIndex], a
-	ld a, 1
-	ld [wWhichPewterGuy], a
-	predef PewterGuys
-	ld hl, wNPCMovementDirections2
-	ld de, RLEList_PewterGymGuy
-	call DecodeRLEList
-	ld hl, wStatusFlags4
-	res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
-	ld hl, wStatusFlags5
-	set BIT_SCRIPTED_MOVEMENT_STATE, [hl]
-	ld a, $1
-	ld [wNPCMovementScriptFunctionNum], a
-	ret
-
-RLEList_PewterGymPlayer:
-	db NO_INPUT, 1
-	db D_RIGHT, 2
-	db D_DOWN, 5
-	db D_LEFT, 11
-	db D_UP, 5
-	db D_LEFT, 15
-	db -1
-RLEList_PewterGymGuy:
-	db NPC_MOVEMENT_DOWN, 2
-	db NPC_MOVEMENT_LEFT, 15
-	db NPC_MOVEMENT_UP, 5
-	db NPC_MOVEMENT_LEFT, 11
-	db NPC_MOVEMENT_DOWN, 5
-	db NPC_MOVEMENT_RIGHT, 3
-	db -1
-SetEnemyTrainerToStayAndFaceAnyDirection::
-	ld a, [wCurMap]
-	cp POKEMON_TOWER_7F
-	ret z
-	ld hl, RivalIDs
-	ld a, [wEngagedTrainerClass]
-	ld b, a
-.loop
-	ld a, [hli]
-	cp -1
-	jr z, .notRival
-	cp b
-	ret z
-	jr .loop
-.notRival
-	ld a, [wSpriteIndex]
-	ldh [hSpriteIndex], a
-	jp SetSpriteMovementBytesToFF
-
-RivalIDs:
-	db OPP_RIVAL1
-	db OPP_RIVAL2
-	db OPP_RIVAL3
-	db -1
+	ld [

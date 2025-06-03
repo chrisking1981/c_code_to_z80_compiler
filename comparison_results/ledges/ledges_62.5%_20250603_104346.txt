@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: ledges.asm ===
+Timestamp: 2025-06-03 10:43:46
+
+Functional similarity: 62.5%
+Overall similarity: 61.8%
+Original lines: 74
+Compiled lines: 54
+Perfect match: False
+Grade: C-
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  HandleLedges::
+   Compiled:  HandleLedges:
+
+2. Line 4 mismatch:
+   Original:  ret nz
+   Compiled:  ld a, [wCurMapTileset]
+
+3. Line 5 mismatch:
+   Original:  ld a, [wCurMapTileset]
+   Compiled:  and a
+
+4. Line 6 mismatch:
+   Original:  and a
+   Compiled:  predef GetTileAndCoordsInFrontOfPlayer
+
+5. Line 7 mismatch:
+   Original:  ret nz
+   Compiled:  ld a, [wSpritePlayerStateData1FacingDirection]
+
+6. Line 8 mismatch:
+   Original:  predef GetTileAndCoordsInFrontOfPlayer
+   Compiled:  ld b, a
+
+7. Line 9 mismatch:
+   Original:  ld a, [wSpritePlayerStateData1FacingDirection]
+   Compiled:  ld a, [wTileInFrontOfPlayer]
+
+8. Line 10 mismatch:
+   Original:  ld b, a
+   Compiled:  ld d, a
+
+9. Line 11 mismatch:
+   Original:  lda_coord 8, 9
+   Compiled:  ld hl, LedgeTiles
+
+10. Line 12 mismatch:
+   Original:  ld c, a
+   Compiled:  ..loop
+
+11. Missing in compiled (5 lines):
+   ret
+   INCLUDE "data/tilesets/ledge_tiles.asm"
+   LoadHoppingShadowOAM:
+   ld hl, vChars1 tile $7f
+   ld de, LedgeHoppingShadow
+

@@ -1,0 +1,56 @@
+=== DETAILED COMPARISON: cut.asm ===
+Timestamp: 2025-06-03 10:36:52
+
+Functional similarity: 88.7%
+Overall similarity: 85.1%
+Original lines: 233
+Compiled lines: 236
+Perfect match: False
+Grade: B+
+
+=== DIFFERENCES ===
+1. Line 23 mismatch:
+   Original:  .NothingToCutText
+   Compiled:  NothingToCutText:
+
+2. Line 67 mismatch:
+   Original:  UsedCutText:
+   Compiled:  InitCutAnimOAM:
+
+3. Line 68 mismatch:
+   Original:  text_far _UsedCutText
+   Compiled:  xor a
+
+4. Line 69 mismatch:
+   Original:  text_end
+   Compiled:  ld [wWhichAnimationOffsets], a
+
+5. Line 70 mismatch:
+   Original:  InitCutAnimOAM:
+   Compiled:  ld a, %11100100
+
+6. Line 71 mismatch:
+   Original:  xor a
+   Compiled:  ldh [rOBP1], a
+
+7. Line 72 mismatch:
+   Original:  ld [wWhichAnimationOffsets], a
+   Compiled:  ld a, [wCutTile]
+
+8. Line 73 mismatch:
+   Original:  ld a, %11100100
+   Compiled:  cp $52
+
+9. Line 74 mismatch:
+   Original:  ldh [rOBP1], a
+   Compiled:  jr z, .grass
+
+10. Line 75 mismatch:
+   Original:  ld a, [wCutTile]
+   Compiled:  ld de, Overworld_GFX tile $2d
+
+11. Extra in compiled (3 lines):
+   db 8, $34
+   db -12, $14
+   CutTreeBlockSwaps:
+

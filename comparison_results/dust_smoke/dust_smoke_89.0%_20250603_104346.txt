@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: dust_smoke.asm ===
+Timestamp: 2025-06-03 10:43:46
+
+Functional similarity: 89.0%
+Overall similarity: 88.0%
+Original lines: 81
+Compiled lines: 74
+Perfect match: False
+Grade: B+
+
+=== DIFFERENCES ===
+1. Line 20 mismatch:
+   Original:  .returnAddress
+   Compiled:  Call the function that was set up by GetMoveBoulderDustFunctionPointer
+
+2. Line 21 mismatch:
+   Original:  ldh a, [rOBP1]
+   Compiled:  .returnAddress
+
+3. Line 22 mismatch:
+   Original:  xor %01100100
+   Compiled:  ldh a, [rOBP1]
+
+4. Line 23 mismatch:
+   Original:  ldh [rOBP1], a
+   Compiled:  xor %01100100
+
+5. Line 24 mismatch:
+   Original:  call Delay3
+   Compiled:  ldh [rOBP1], a
+
+6. Line 25 mismatch:
+   Original:  pop bc
+   Compiled:  call Delay3
+
+7. Line 26 mismatch:
+   Original:  dec c
+   Compiled:  pop bc
+
+8. Line 27 mismatch:
+   Original:  jr nz, .loop
+   Compiled:  dec c
+
+9. Line 28 mismatch:
+   Original:  pop af
+   Compiled:  jr nz, .loop
+
+10. Line 29 mismatch:
+   Original:  ld [wUpdateSpritesEnabled], a
+   Compiled:  pop af
+
+11. Missing in compiled (5 lines):
+   LoadSmokeTile:
+   ld de, SSAnneSmokePuffTile
+   lb bc, BANK(SSAnneSmokePuffTile), (SSAnneSmokePuffTileEnd - SSAnneSmokePuffTile) / $10
+   jp CopyVideoData
+   SSAnneSmokePuffTile:
+

@@ -1,0 +1,55 @@
+=== DETAILED COMPARISON: emotion_bubbles.asm ===
+Timestamp: 2025-06-03 11:06:07
+
+Functional similarity: 80.0%
+Overall similarity: 72.7%
+Original lines: 69
+Compiled lines: 71
+Perfect match: False
+Grade: B
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  EmotionBubble:
+   Compiled:  EmotionBubblesPointerTable::
+
+2. Line 2 mismatch:
+   Original:  ld a, [wWhichEmotionBubble]
+   Compiled:  dw ShockEmote
+
+3. Line 3 mismatch:
+   Original:  ld c, a
+   Compiled:  dw QuestionEmote
+
+4. Line 4 mismatch:
+   Original:  ld b, 0
+   Compiled:  dw HappyEmote
+
+5. Line 5 mismatch:
+   Original:  ld hl, EmotionBubblesPointerTable
+   Compiled:  EmotionBubblesOAMBlock:
+
+6. Line 6 mismatch:
+   Original:  add hl, bc
+   Compiled:  db $F8, 0
+
+7. Line 7 mismatch:
+   Original:  add hl, bc
+   Compiled:  db $F9, 0
+
+8. Line 8 mismatch:
+   Original:  ld e, [hl]
+   Compiled:  db $FA, 0
+
+9. Line 9 mismatch:
+   Original:  inc hl
+   Compiled:  db $FB, 0
+
+10. Line 10 mismatch:
+   Original:  ld d, [hl]
+   Compiled:  ShockEmote:
+
+11. Extra in compiled (2 lines):
+   call DelayFrame
+   jp UpdateSprites
+

@@ -1,0 +1,34 @@
+=== DETAILED COMPARISON: hidden_objects.asm ===
+Timestamp: 2025-06-03 10:43:46
+
+Functional similarity: 0.0%
+Overall similarity: 4.3%
+Original lines: 126
+Compiled lines: 4
+Perfect match: False
+Grade: F
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  IsPlayerOnDungeonWarp::
+   Compiled:  QuestionEmote:
+
+2. Line 2 mismatch:
+   Original:  xor a
+   Compiled:  INCBIN "gfx/emotes/question.2bpp"
+
+3. Line 3 mismatch:
+   Original:  ld [wWhichDungeonWarp], a
+   Compiled:  HappyEmote:
+
+4. Line 4 mismatch:
+   Original:  ld a, [wStatusFlags3]
+   Compiled:  INCBIN "gfx/emotes/happy.2bpp"
+
+5. Missing in compiled (5 lines):
+   bit BIT_ON_DUNGEON_WARP, a
+   ret nz
+   call ArePlayerCoordsInArray
+   ret nc
+   ld a, [wCoordIndex]
+

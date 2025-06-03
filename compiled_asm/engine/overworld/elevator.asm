@@ -10,7 +10,6 @@ ShakeElevator::
 	ld d, a
 	ld e, $1
 	ld b, 100
-.shakeLoop
 	ld a, e
 	xor $fe
 	ld e, a
@@ -32,12 +31,10 @@ ShakeElevator::
 	ld c, BANK(SFX_Safari_Zone_PA)
 	ld a, SFX_SAFARI_ZONE_PA
 	call PlayMusic
-.musicLoop
 	ld a, [wChannelSoundIDs + CHAN5]
 	cp SFX_SAFARI_ZONE_PA
 	jr z, .musicLoop
-	call UpdateSprites
-	jp PlayDefaultMusic
+
 
 ShakeElevatorRedrawRow:
 	ld hl, wMapViewVRAMPointer + 1
