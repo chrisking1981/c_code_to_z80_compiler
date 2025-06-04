@@ -17,11 +17,6 @@ class CToZ80Compiler:
         self.current_function = None
         self.data_section = []
         self.labels_used = set()
-        self.pointer_tables_with_double_colon = {
-            'PalletMovementScriptPointerTable',
-            'PewterMuseumGuyMovementScriptPointerTable',
-            'PewterGymGuyMovementScriptPointerTable'
-        }
         
     def compile_directory(self, input_dir):
         """Compile all C files in directory"""
@@ -84,7 +79,7 @@ class CToZ80Compiler:
                     functions_section.append("")
             elif item['type'] == 'pointer_table':
                 # Emit pointer table exactly where it appears, preserving colon style
-                suffix = '::' if item.get('double_colon') or item['name'] in self.pointer_tables_with_double_colon else ':'
+                suffix = '::' if item.get('double_colon') or 'PointerTable' in item['name'] or 'Pointer_Table' in item['name'] else ':'
                 functions_section.append(f"{item['name']}{suffix}")
                 for pointer in item['pointers']:
                     clean_pointer = pointer.replace('&', '').strip()
@@ -112,7 +107,7 @@ class CToZ80Compiler:
                 if label.startswith('.'):
                     functions_section.append(label)
                 else:
-                    suffix = '::' if item.get('double_colon') or self.is_pointer_table_function(label) or label in self.pointer_tables_with_double_colon or 'PointerTable' in label or 'Pointer_Table' in label else ':'
+                    suffix = '::' if item.get('double_colon') or self.is_pointer_table_function(label) or 'PointerTable' in label or 'Pointer_Table' in label else ':'
                     functions_section.append(f"{label}{suffix}")
             elif item['type'] == 'raw' and in_function:
                 functions_section.append(item['content'])
@@ -324,67 +319,22 @@ class CToZ80Compiler:
         return processed
     
     def detect_upcoming_pointer_table(self, lines, current_index):
-        """Check if a pointer table follows the current function end"""
-        # Look ahead for pointer table pattern in the original ASM structure
-        # This is a heuristic based on function naming patterns
-        
-        # Check if the previous function was followed by a pointer table
-        # by looking back to see what function just ended
-        function_name = None
-        j = current_index - 1
-        while j >= 0 and not self.is_function_definition(lines[j]):
-            j -= 1
-        
-        if j >= 0:
-            function_name = self.extract_function_name(lines[j])
-            
-            # Known patterns where pointer tables follow specific functions
-            if function_name == '_EndNPCMovementScript':
-                return {
-                    'name': 'PalletMovementScriptPointerTable',
-                    'pointers': [
-                        'PalletMovementScript_OakMoveLeft',
-                        'PalletMovementScript_PlayerMoveLeft', 
-                        'PalletMovementScript_WaitAndWalkToLab',
-                        'PalletMovementScript_WalkToLab',
-                        'PalletMovementScript_Done'
-                    ]
-                }
-            elif function_name == 'PalletMovementScript_Done':
-                # This is the FIRST PalletMovementScript_Done - should be followed by PewterMuseumGuy table
-                return {
-                    'name': 'PewterMuseumGuyMovementScriptPointerTable',
-                    'pointers': [
-                        'PewterMovementScript_WalkToMuseum',
-                        'PewterMovementScript_Done'
-                    ]
-                }
-            elif function_name == 'PewterMovementScript_Done':
-                # Check if this is Museum or Gym context by looking at surrounding functions
-                context = self.get_function_context(lines, j)
-                if 'WalkToMuseum' in context:
-                    # This is Museum context, add Gym table after
-                    return {
-                        'name': 'PewterGymGuyMovementScriptPointerTable', 
-                        'pointers': [
-                            'PewterMovementScript_WalkToGym',
-                            'PewterMovementScript_Done'
-                        ]
-                    }
-        
+        """Check if a pointer table follows the current function end."""
+        j = current_index + 1
+        while j < len(lines) and not lines[j].strip():
+            j += 1
+        if j < len(lines):
+            label_match = re.match(r"(\w*PointerTable)::?", lines[j].strip())
+            if label_match:
+                label = label_match.group(1)
+                pointers = []
+                k = j + 1
+                while k < len(lines) and lines[k].strip().startswith('// dw'):
+                    ptr = lines[k].strip()[5:].strip()
+                    pointers.append(ptr)
+                    k += 1
+                return {'name': label, 'pointers': pointers}
         return None
-    
-    def get_function_context(self, lines, function_start_index):
-        """Get context around a function to help distinguish similar function names"""
-        context = ""
-        # Look backwards and forwards for context in function names and constants
-        for j in range(max(0, function_start_index - 100), min(len(lines), function_start_index + 50)):
-            if j < len(lines):
-                line = lines[j]
-                if ('Museum' in line or 'Gym' in line or 'WalkToMuseum' in line or 
-                    'WalkToGym' in line or 'PewterMovementScript' in line):
-                    context += line + " "
-        return context
     
     def detect_text_after_print(self, lines, current_index):
         """Detect if jp PrintText is followed by a text reference"""
@@ -702,7 +652,7 @@ class CToZ80Compiler:
                     return f"jp {func_name}"
                 elif '/* farcall */' in line:
                     return f"farcall {func_name}"
-                elif '/* predef */' in line or func_name in ['ConvertNPCMovementDirectionsToJoypadMasks', 'HideObject', 'PewterGuys']:
+                elif '/* predef */' in line or func_name in ['ConvertNPCMovementDirectionsToJoypadMasks', 'HideObject']:
                     # Known predef functions
                     return f"predef {func_name}"
                 elif func_name == 'AnimCut':
