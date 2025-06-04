@@ -17,6 +17,11 @@ class CToZ80Compiler:
         self.current_function = None
         self.data_section = []
         self.labels_used = set()
+        self.pointer_tables_with_double_colon = {
+            'PalletMovementScriptPointerTable',
+            'PewterMuseumGuyMovementScriptPointerTable',
+            'PewterGymGuyMovementScriptPointerTable'
+        }
         
     def compile_directory(self, input_dir):
         """Compile all C files in directory"""
@@ -59,8 +64,9 @@ class CToZ80Compiler:
                 continue
             elif item['type'] == 'function_start':
                 func_name = item['name']
-                # Gewone functie label:
-                functions_section.append(f"{func_name}:")
+                # Use :: for known pointer table/global functions
+                label_suffix = '::' if self.is_pointer_table_function(func_name) else ':'
+                functions_section.append(f"{func_name}{label_suffix}")
                 in_function = True
             elif item['type'] == 'function_end':
                 in_function = False
@@ -77,12 +83,13 @@ class CToZ80Compiler:
                     functions_section.append(f"\ttext_end")
                     functions_section.append("")
             elif item['type'] == 'pointer_table':
-                # Pointer table label met ::
-                data_arrays_section.append(f"{item['name']}::")
+                # Emit pointer table exactly where it appears, preserving colon style
+                suffix = '::' if item.get('double_colon') or item['name'] in self.pointer_tables_with_double_colon else ':'
+                functions_section.append(f"{item['name']}{suffix}")
                 for pointer in item['pointers']:
                     clean_pointer = pointer.replace('&', '').strip()
-                    data_arrays_section.append(f"\tdw {clean_pointer}")
-                data_arrays_section.append("")
+                    functions_section.append(f"\tdw {clean_pointer}")
+                functions_section.append("")
             elif item['type'] == 'asm_instruction' and in_function:
                 comment = item.get('comment', '')
                 instruction = item['instruction']
@@ -90,26 +97,25 @@ class CToZ80Compiler:
                 if comment:
                     instr_with_comment += f" ; {comment}"
                 functions_section.append(f"\t{instr_with_comment}")
-                if 'jp PrintText' in instruction:
+                if 'jp PrintText' in instruction or 'call PrintText' in instruction:
                     text_name = item.get('text_reference')
                     if text_name:
                         functions_section.append("")
-                        functions_section.append(f"{text_name}:")
-                        functions_section.append(f"\ttext_far _{text_name}")
+                        label_line = text_name if text_name.startswith('.') else f"{text_name}:"
+                        functions_section.append(label_line)
+                        functions_section.append(f"\ttext_far _{text_name.lstrip('.')}")
                         functions_section.append(f"\ttext_end")
                         functions_section.append("")
             elif item['type'] == 'label' and in_function:
-                # Local label: ..label, pointer table label: ::, gewone label: :
+                # Local label: .label, pointer table/global labels use ::
                 label = item['name']
                 if label.startswith('.'):
-                    # Local label: ..label
-                    functions_section.append(f"..{label[1:]}")
-                elif 'PointerTable' in label or 'Pointer_Table' in label:
-                    # Pointer table label: ::
-                    functions_section.append(f"{label}::")
+                    functions_section.append(label)
                 else:
-                    # Gewone label: :
-                    functions_section.append(f"{label}:")
+                    suffix = '::' if item.get('double_colon') or self.is_pointer_table_function(label) or label in self.pointer_tables_with_double_colon or 'PointerTable' in label or 'Pointer_Table' in label else ':'
+                    functions_section.append(f"{label}{suffix}")
+            elif item['type'] == 'raw' and in_function:
+                functions_section.append(item['content'])
             elif item['type'] == 'c_statement' and in_function:
                 asm_instr = self.convert_c_statement(item['content'])
                 if asm_instr:
@@ -150,6 +156,12 @@ class CToZ80Compiler:
                 function_name = self.extract_function_name(line)
                 processed.append({'type': 'function_start', 'name': function_name})
                 i += 1
+                # Skip over any comment lines directly after the definition
+                while i < len(lines) and lines[i].strip().startswith('//'):
+                    i += 1
+                # Skip duplicate label lines immediately following the function definition
+                if i < len(lines) and lines[i].strip() == f"{function_name}:":
+                    i += 1
                 continue
             
             # Look ahead for pointer table patterns after function ends
@@ -191,17 +203,34 @@ class CToZ80Compiler:
                     i += 1
                 continue
             
-            # Handle labels
+            # Handle labels and pointer tables
             if line.strip().endswith(':') and not line.strip().startswith('//'):
-                label = line.strip()[:-1]
-                processed.append({'type': 'label', 'name': label})
+                stripped = line.strip()
+                if stripped.endswith('::'):
+                    label = stripped[:-2]
+                    double_colon = True
+                else:
+                    label = stripped[:-1]
+                    double_colon = False
+                # Pointer tables defined directly in the source
+                if 'PointerTable' in label or 'Pointer_Table' in label:
+                    pointers = []
+                    j = i + 1
+                    while j < len(lines) and lines[j].strip().startswith('// dw'):
+                        ptr = lines[j].strip()[5:].strip()
+                        pointers.append(ptr)
+                        j += 1
+                    processed.append({'type': 'pointer_table', 'name': label, 'pointers': pointers, 'double_colon': double_colon})
+                    i = j
+                    continue
+                processed.append({'type': 'label', 'name': label, 'double_colon': double_colon})
                 i += 1
                 continue
             
             # Handle ASM comments - HIGHEST PRIORITY
             if line.strip().startswith('//'):
                 asm_comment = line.strip()[2:].strip()
-                
+
                 # Extract inline comments and instructions separately
                 instruction = asm_comment
                 comment = None
@@ -209,15 +238,15 @@ class CToZ80Compiler:
                     parts = asm_comment.split(';', 1)
                     instruction = parts[0].strip()
                     comment = parts[1].strip()
-                
+
                 if self.is_valid_asm_instruction(instruction):
-                    # Detect text reference for jp PrintText
+                    # Detect text reference for jp/call PrintText
                     text_reference = None
-                    if 'jp PrintText' in instruction:
+                    if 'jp PrintText' in instruction or 'call PrintText' in instruction:
                         text_reference = self.detect_text_after_print(lines, i)
-                    
+
                     processed.append({
-                        'type': 'asm_instruction', 
+                        'type': 'asm_instruction',
                         'instruction': instruction,
                         'comment': comment,
                         'text_reference': text_reference
@@ -264,7 +293,20 @@ class CToZ80Compiler:
                               len(next_line) < 100):  # Skip simple statements only
                             i += 1
                 else:
-                    processed.append({'type': 'skip'})
+                    # Check if this comment represents a label (e.g. .loop)
+                    if instruction.endswith(':'):
+                        label = instruction[:-1]
+                        processed.append({'type': 'label', 'name': label})
+                    elif re.match(r'^\.[A-Za-z0-9_]+$', instruction):
+                        if re.match(r'^\.\w+Text$', instruction):
+                            processed.append({'type': 'skip'})
+                        else:
+                            processed.append({'type': 'label', 'name': instruction})
+                    elif (instruction.startswith('MACRO') or instruction == 'ENDM' or
+                          instruction.startswith('boulder_dust_adjust')):
+                        processed.append({'type': 'raw', 'content': instruction})
+                    else:
+                        processed.append({'type': 'skip'})
                 i += 1
                 continue
             
@@ -350,12 +392,12 @@ class CToZ80Compiler:
         for j in range(max(0, current_index - 5), current_index):
             line = lines[j].strip()
             if 'hl = (uint8_t*)' in line and 'Text' in line:
-                match = re.search(r'hl = \(uint8_t\*\)(\w+Text)', line)
+                match = re.search(r'hl = \(uint8_t\*\)(\.?\w+Text)', line)
                 if match:
                     return match.group(1)
             # Also check for direct hl = TextName patterns
             elif 'hl = ' in line and 'Text' in line and 'uint8_t' not in line:
-                match = re.search(r'hl = (\w+Text)', line)
+                match = re.search(r'hl = (\.?\w+Text)', line)
                 if match:
                     return match.group(1)
         return None
@@ -406,9 +448,10 @@ class CToZ80Compiler:
         if any(pattern in comment.lower() for pattern in skip_patterns):
             # But still allow if it contains valid ASM keywords
             has_asm_keyword = any(comment.lower().startswith(kw) for kw in [
-                'ld', 'xor', 'cp', 'jr', 'jp', 'call', 'ret', 'add', 'sub', 
-                'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop', 
-                'ldh', 'swap', 'srl', 'lb', 'sla', 'sra', 'rl', 'rr', 'rlc', 'rrc'
+                'ld', 'xor', 'cp', 'jr', 'jp', 'call', 'ret', 'add', 'sub',
+                'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop',
+                'ldh', 'swap', 'srl', 'lb', 'sla', 'sra', 'rl', 'rr', 'rlc', 'rrc',
+                'db', 'dw', 'lda_coord'
             ])
             if not has_asm_keyword:
                 return False
@@ -419,7 +462,7 @@ class CToZ80Compiler:
             'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop', 
             'ldh', 'swap', 'srl', 'sla', 'sra', 'rl', 'rr', 'rlc', 'rrc',
             'lb', 'ccf', 'scf', 'nop', 'halt', 'stop', 'di', 'ei', 'reti',
-            'rst', 'daa', 'cpl', 'predef', 'farcall'  # Added predef and farcall
+            'rst', 'daa', 'cpl', 'predef', 'farcall', 'db', 'dw', 'lda_coord'  # Added predef, farcall, db, dw, lda_coord
         ]
         
         # Check if comment starts with any ASM keyword
@@ -1115,11 +1158,11 @@ class CToZ80Compiler:
             'DisplayBouncingBoulderDustAnimation', 
             'DoBoulderDustAnimation',
             'DoBoulderFallAnimation',
-            'GetMoveBoulderDustFunctionPointer',
             'ShakeElevator',  # This IS a pointer table function
             'PlayerStepOutFromDoor',  # This IS a pointer table function
             '_EndNPCMovementScript',   # This IS a pointer table function
             'SetEnemyTrainerToStayAndFaceAnyDirection'  # This IS a pointer table function
+            ,'ClearVariablesOnEnterMap'
         }
         
         return func_name in pointer_functions
