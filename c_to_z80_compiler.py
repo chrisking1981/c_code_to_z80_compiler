@@ -303,17 +303,23 @@ class CToZ80Compiler:
                               len(next_line) < 100):  # Skip simple statements only
                             i += 1
                 else:
-                    # Check if this comment represents a label (e.g. .loop)
+                    # Check if this comment represents a label (e.g. .loop).
                     if instruction.endswith(':'):
-                        label = instruction[:-1]
-                        processed.append({'type': 'label', 'name': label})
+                        label = instruction[:-1].strip()
+                        # Skip comment headings like "INPUT:" which are
+                        # typically documentation rather than real labels.
+                        if label.isupper() and len(label) > 2:
+                            processed.append({'type': 'skip'})
+                        else:
+                            processed.append({'type': 'label', 'name': label})
                     elif re.match(r'^\.[A-Za-z0-9_]+$', instruction):
                         if re.match(r'^\.\w+Text$', instruction):
                             processed.append({'type': 'skip'})
                         else:
                             processed.append({'type': 'label', 'name': instruction})
                     elif (instruction.startswith('MACRO') or instruction == 'ENDM' or
-                          instruction.startswith('boulder_dust_adjust')):
+                          instruction.startswith('boulder_dust_adjust') or
+                          instruction.startswith('REPT') or instruction == 'ENDR'):
                         processed.append({'type': 'raw', 'content': instruction})
                     else:
                         processed.append({'type': 'skip'})
@@ -417,6 +423,17 @@ class CToZ80Compiler:
                 'ld', 'xor', 'cp', 'jr', 'jp', 'call', 'ret', 'add', 'sub',
                 'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop',
                 'ldh', 'swap', 'srl', 'lb', 'sla', 'sra', 'rl', 'rr', 'rlc', 'rrc',
+                'db', 'dw', 'lda_coord', 'incbin', 'include', 'dbsprite'
+            ])
+            if not has_asm_keyword:
+                return False
+
+        # Long explanatory sentences are unlikely to be ASM instructions
+        if len(comment.split()) > 4:
+            has_asm_keyword = any(comment.lower().startswith(kw) for kw in [
+                'ld', 'xor', 'cp', 'jr', 'jp', 'call', 'ret', 'add', 'sub',
+                'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop',
+                'ldh', 'swap', 'srl', 'sla', 'sra', 'rl', 'rr', 'rlc', 'rrc',
                 'db', 'dw', 'lda_coord', 'incbin', 'include', 'dbsprite'
             ])
             if not has_asm_keyword:
