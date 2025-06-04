@@ -1,0 +1,28 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 1 files to compare
+
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 97.7%
+Overall similarity: 95.7%
+Line count - Original: 67, Compiled: 64
+❌ 10 functional differences found
+  Line 13:
+    Original:  .shakeLoop
+    Compiled:  ld a, e
+  Line 14:
+    Original:  ld a, e
+    Compiled:  xor $fe
+  Line 15:
+    Original:  xor $fe
+    Compiled:  ld e, a
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 1
+Perfect matches: 0/1
+Average functional similarity: 97.7%
+Overall grade: A+
+🏆 EXCELLENT - Near perfect compilation!

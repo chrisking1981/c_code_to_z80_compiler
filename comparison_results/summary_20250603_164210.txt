@@ -1,0 +1,92 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 5 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 67.7%
+Overall similarity: 65.0%
+Line count - Original: 266, Compiled: 195
+❌ 10 functional differences found
+  Line 1:
+    Original:  PlayerStepOutFromDoor::
+    Compiled:  PlayerStepOutFromDoor:
+  Line 18:
+    Original:  .notStandingOnDoor
+    Compiled:  notStandingOnDoor:
+  Line 29:
+    Original:  _EndNPCMovementScript::
+    Compiled:  _EndNPCMovementScript:
+
+📄 cut.asm
+----------------------------------------
+Functional similarity: 75.3%
+Overall similarity: 71.4%
+Line count - Original: 233, Compiled: 200
+❌ 10 functional differences found
+  Line 6:
+    Original:  jr z, .overworld
+    Compiled:  cp GYM
+  Line 7:
+    Original:  cp GYM
+    Compiled:  ld a, [wTileInFrontOfPlayer]
+  Line 8:
+    Original:  jr nz, .nothingToCut
+    Compiled:  cp $50
+
+📄 dust_smoke.asm
+----------------------------------------
+Functional similarity: 81.6%
+Overall similarity: 81.2%
+Line count - Original: 81, Compiled: 71
+❌ 10 functional differences found
+  Line 13:
+    Original:  .loop
+    Compiled:  ...loop
+  Line 20:
+    Original:  .returnAddress
+    Compiled:  jr .*hl
+  Line 21:
+    Original:  ldh a, [rOBP1]
+    Compiled:  ...returnAddress
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 94.7%
+Overall similarity: 92.9%
+Line count - Original: 67, Compiled: 66
+❌ 10 functional differences found
+  Line 1:
+    Original:  ShakeElevator::
+    Compiled:  ShakeElevator:
+  Line 13:
+    Original:  .shakeLoop
+    Compiled:  ...shakeLoop
+  Line 35:
+    Original:  .musicLoop
+    Compiled:  ...musicLoop
+
+📄 emotion_bubbles.asm
+----------------------------------------
+Functional similarity: 85.7%
+Overall similarity: 80.8%
+Line count - Original: 69, Compiled: 64
+❌ 9 functional differences found
+  Line 25:
+    Original:  .next
+    Compiled:  ...next
+  Line 27:
+    Original:  .loop
+    Compiled:  ...loop
+  Line 58:
+    Original:  dw ShockEmote
+    Compiled:  EmotionBubblesOAMBlock:
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 5
+Perfect matches: 0/5
+Average functional similarity: 81.0%
+Overall grade: B
+🔧 GOOD - Some issues to fix

@@ -191,9 +191,60 @@ BELANGRIJK voor correcte compilatie:
     
     def create_conversion_prompt(self, asm_content: str, filename: str) -> str:
         """Create the LLM prompt for ASM to C conversion"""
+        
+        # ANALYZE ASM CONTENT TO IDENTIFY FIRST FUNCTION
+        lines = asm_content.split('\n')
+        first_function = None
+        for line in lines:
+            line = line.strip()
+            if line and line.endswith(':') and not line.startswith('.') and not line.startswith(';'):
+                # Skip data tables and arrays - look for actual functions
+                if not any(keyword in line.lower() for keyword in ['table', 'list', 'data', 'offsets', 'block']):
+                    if any(keyword in line.lower() for keyword in ['function', 'script', 'used', 'player', 'move', 'init', 'animate', 'shake', 'display']):
+                        first_function = line.replace(':', '')
+                        break
+                # If no clear function keywords, take first non-data label
+                elif not first_function and len([c for c in line if c.isupper()]) > 0:
+                    first_function = line.replace(':', '')
+                    break
+        
+        example_block = '''
+// Functie met local label
+void MyFunction(void) {
+    // ... code ...
+    goto label_loop;
+..label_loop:
+    // ... code ...
+}
+
+// Pointer table
+MyPointerTable::
+dw MyFunction
+
+dw AndereFunctie
+
+// Gewone label
+MyLabel:
+    // ... code ...
+'''
         prompt = f"""Je bent een expert Game Boy assembly naar C code converter voor het pokered project.
 
 DOEL: Converteer de volgende Z80 assembly code naar functionele C code die byte-voor-byte identiek gedrag oplevert.
+
+=== 🚨 CRITICAL STRUCTURE & LABEL RULES 🚨 ===
+1. **FUNCTIE VOLGORDE**: Begin ALTIJD met de eerste functie, nooit met pointer tables/data arrays!
+2. **LABELS**:
+   - Local labels: `.label` in ASM → `..label` in ASM output (dubbele puntjes)
+   - Pointer table labels: `Label:` in ASM → `Label::` in ASM output (dubbele dubbele-punt)
+   - Gewone labels: `Label:` in ASM → `Label:` in ASM output
+3. **POINTER TABLES**:
+   - Gebruik `dw FunctionName` (zonder &)
+   - Pointer table labels ALTIJD met dubbele dubbele-punt (`Label::`)
+4. **DATA ARRAYS**: Altijd NA functies
+5. **ALLE LABELS MOETEN CORRECT GEFORMAAT ZIJN!**
+
+=== VOORBEELDSTRUCTUUR ===
+{example_block}
 
 === CONVERSION RULES ===
 {self.conversion_rules}
@@ -202,48 +253,51 @@ DOEL: Converteer de volgende Z80 assembly code naar functionele C code die byte-
 {self.c_patterns}
 
 === SPECIFIEKE EISEN ===
-1. Gebruik ALTIJD -1 in plaats van 0xFF voor eindmarkeringen in arrays
-2. Voor function pointer tables: gebruik :: in plaats van : voor labels
-3. Behoud alle assembly comments als // comments boven elke C regel
-4. Voor PrintText calls: gebruik /* jp */ annotatie
-5. Voor farcall: gebruik /* farcall */ annotatie  
-6. Voor predef: gebruik /* predef */ annotatie
-7. Local labels worden .labelname in assembly
+1. **🎯 FUNCTIE VOLGORDE**: Begin met de eerste functie uit de ASM, NOOIT met data!
+2. **🎯 COMPLETENESS**: Converteer ALLE {len(asm_content.split(chr(10)))} lijnen - laat NIETS weg!
+3. **POINTER FORMAT**: Gebruik `dw FunctionName` NIET `dw &FunctionName`  
+4. **DATA ARRAYS**: Gebruik ALTIJD -1 in plaats van 0xFF voor eindmarkeringen
+5. **LABELS**: Local labels: .label → ..label; Pointer tables: Label: → Label::
+6. **COMMENTS**: Behoud alle assembly comments als // comments boven elke C regel
+7. **ANNOTATIONS**: Voor PrintText calls: gebruik /* jp */ annotatie
+8. **FARCALL**: Voor farcall: gebruik /* farcall */ annotatie  
+9. **PREDEF**: Voor predef: gebruik /* predef */ annotatie
+10. **LOCAL LABELS**: .labelname wordt goto labelname; binnen dezelfde functie
 
-=== KRITIEKE VEREISTE ===
-CONVERTEER ALLEEN DE SECTIES DIE ECHT IN DIT ASM BESTAND STAAN!
-
-GRAPHICS SECTIES ALLEEN ALS ZE IN DE SOURCE STAAN:
-Als je INCBIN statements ziet in de ASM source zoals:
-SomeLabel:    INCBIN "gfx/path/file.2bpp"
-
-Dan genereer je C code als:
-// SomeLabel: INCBIN "gfx/path/file.2bpp"  
-const uint8_t SomeLabel_INCBIN[] = {{ /* gfx/path/file.2bpp */ }};
-
-ALLEEN als er een marker-only label staat (zonder INCBIN), gebruik dan:
-// SomeLabel:
-const uint8_t SomeLabel_MARKER = 0;
-
-BELANGRIJK: Voeg GEEN graphics secties toe die niet in de originele ASM source staan!
+=== CRITICAL STRUCTURE REQUIREMENTS ===
+**ALWAYS start with the FIRST FUNCTION you see in the ASM file!**
+**NEVER start with pointer tables, data arrays, or constants!**
+**CONVERT EVERYTHING - this file has {len(asm_content.split(chr(10)))} lines of ASM code!**
 
 === ASM BESTAND: {filename} ===
+HET BESTAND HEEFT {len(asm_content.split(chr(10)))} LIJNEN - CONVERTEER ALLES!
+
 ```asm
 {asm_content}
 ```
 
 === GEWENSTE OUTPUT ===
 Genereer de COMPLETE C code met:
-1. Alle benodigde #include statements
-2. Extern declarations voor variabelen/functies  
-3. Constanten/defines
-4. De functie implementaties
-5. Data arrays (gebruik -1 voor eindmarkeringen!)
-6. **ALLEEN graphics secties die echt in de ASM source staan**
+1. **Alle benodigde #include statements**
+2. **Extern declarations voor variabelen/functies**  
+3. **Constanten/defines**
+4. **🎯 FUNCTIONS FIRST (exact ASM order) - BEGIN MET {first_function if first_function else "EERSTE FUNCTIE"}**
+5. **🎯 DATA ARRAYS LAST (exact ASM order)**
+6. **ALLE {len(asm_content.split(chr(10)))} lijnen van ASM geconverteerd**
+7. **Gebruik -1 voor array eindmarkeringen**
+8. **Geen & voor function pointers**
+9. **ALLE LABELS MOETEN CORRECT GEFORMAAT ZIJN!**
 
-BELANGRIJK: Converteer ELKE regel van de ASM file, maar voeg NIETS toe dat er niet in staat!
+ABSOLUTE VEREISTE: 
+- Begin met {f"void {first_function}(void)" if first_function else "de EERSTE FUNCTIE"}
+- Converteer ALLE {len(asm_content.split(chr(10)))} lijnen ASM code
+- Respecteer de exacte volgorde van functies en data
+- LAAT NIETS WEG - het origineel heeft {len(asm_content.split(chr(10)))} lijnen!
+- STOP PAS wanneer ALLE ASM content is geconverteerd
 
-Geen extra uitleg, alleen de C code die direct kan worden gecompileerd.
+⚠️ WAARSCHUWING: Als je stopt voordat alle {len(asm_content.split(chr(10)))} lijnen zijn geconverteerd, is je conversie ONVOLLEDIG en GEFAALD!
+
+Geen extra uitleg, alleen de C code die direct kan worden gecompileerd en ALLE ASM content dekt.
 """
         return prompt
     
@@ -291,7 +345,7 @@ Geen extra uitleg, alleen de C code die direct kan worden gecompileerd.
                 }
             ],
             "max_tokens": 4000,
-            "temperature": 0.1  # Low temperature for consistent output
+            "temperature": 0.0  # Low temperature for consistent output
         }
         
         try:

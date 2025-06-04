@@ -1,4 +1,4 @@
-PlayerStepOutFromDoor::
+PlayerStepOutFromDoor:
 	ld hl, wStatusFlags5
 	res BIT_EXITING_DOOR, [hl]
 	call IsPlayerStandingOnDoorTile
@@ -15,7 +15,7 @@ PlayerStepOutFromDoor::
 	ld [wSpritePlayerStateData1ImageIndex], a
 	call StartSimulatingJoypadStates
 	ret
-.notStandingOnDoor
+notStandingOnDoor:
 	xor a
 	ld [wUnusedOverrideSimulatedJoypadStatesIndex], a
 	ld [wSimulatedJoypadStatesIndex], a
@@ -27,7 +27,7 @@ PlayerStepOutFromDoor::
 	res BIT_SCRIPTED_MOVEMENT_STATE, [hl]
 	ret
 
-_EndNPCMovementScript::
+_EndNPCMovementScript:
 	ld hl, wStatusFlags5
 	res BIT_SCRIPTED_MOVEMENT_STATE, [hl]
 	ld hl, wStatusFlags4
@@ -44,19 +44,6 @@ _EndNPCMovementScript::
 	ld [wSimulatedJoypadStatesEnd], a
 	ret
 
-PalletMovementScriptPointerTable::
-	dw PalletMovementScript_OakMoveLeft
-	dw PalletMovementScript_PlayerMoveLeft
-	dw PalletMovementScript_WaitAndWalkToLab
-	dw PalletMovementScript_WalkToLab
-	dw PalletMovementScript_Done
-
-PalletMovementScriptPointerTable::
-	dw PalletMovementScript_OakMoveLeft
-	dw PalletMovementScript_PlayerMoveLeft
-	dw PalletMovementScript_WaitAndWalkToLab
-	dw PalletMovementScript_WalkToLab
-	dw PalletMovementScript_Done
 PalletMovementScript_OakMoveLeft:
 	ld a, [wXCoord]
 	sub $a
@@ -75,10 +62,10 @@ PalletMovementScript_OakMoveLeft:
 	ld a, $1
 	ld [wNPCMovementScriptFunctionNum], a
 	jr .done
-.playerOnLeftTile
+playerOnLeftTile:
 	ld a, $3
 	ld [wNPCMovementScriptFunctionNum], a
-.done
+done:
 	ld hl, wStatusFlags7
 	set BIT_NO_MAP_MUSIC, [hl]
 	ld a, SELECT | START | D_RIGHT | D_LEFT | D_UP | D_DOWN
@@ -100,6 +87,7 @@ PalletMovementScript_PlayerMoveLeft:
 PalletMovementScript_WaitAndWalkToLab:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a ; is the player done moving left yet?
+	ret
 
 PalletMovementScript_WalkToLab:
 	xor a
@@ -125,21 +113,6 @@ PalletMovementScript_WalkToLab:
 	ld [wNPCMovementScriptFunctionNum], a
 	ret
 
-RLEList_ProfOakWalkToLab:
-	db NPC_MOVEMENT_DOWN, 5
-	db NPC_MOVEMENT_LEFT, 1
-	db NPC_MOVEMENT_DOWN, 5
-	db NPC_MOVEMENT_RIGHT, 3
-	db NPC_MOVEMENT_UP, 1
-	db NPC_CHANGE_FACING, 1
-	db -1
-RLEList_PlayerWalkToLab:
-	db D_UP, 2
-	db D_RIGHT, 3
-	db D_DOWN, 5
-	db D_LEFT, 1
-	db D_DOWN, 6
-	db -1
 PalletMovementScript_Done:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
@@ -152,13 +125,6 @@ PalletMovementScript_Done:
 	res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
 	jp EndNPCMovementScript
 
-PewterMuseumGuyMovementScriptPointerTable::
-	dw PewterMovementScript_WalkToMuseum
-	dw PewterMovementScript_Done
-
-PewterMuseumGuyMovementScriptPointerTable::
-	dw PewterMovementScript_WalkToMuseum
-	dw PewterMovementScript_Done
 PewterMovementScript_WalkToMuseum:
 	ld a, BANK(Music_MuseumGuy)
 	ld [wAudioROMBank], a
@@ -187,18 +153,6 @@ PewterMovementScript_WalkToMuseum:
 	ld [wNPCMovementScriptFunctionNum], a
 	ret
 
-RLEList_PewterMuseumPlayer:
-	db NO_INPUT, 1
-	db D_UP, 3
-	db D_LEFT, 13
-	db D_UP, 6
-	db -1
-RLEList_PewterMuseumGuy:
-	db NPC_MOVEMENT_UP, 6
-	db NPC_MOVEMENT_LEFT, 13
-	db NPC_MOVEMENT_UP, 3
-	db NPC_MOVEMENT_LEFT, 1
-	db -1
 PewterMovementScript_Done:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
@@ -208,19 +162,50 @@ PewterMovementScript_Done:
 	res BIT_INIT_SCRIPTED_MOVEMENT, [hl]
 	jp EndNPCMovementScript
 
-PewterGymGuyMovementScriptPointerTable::
-	dw PewterMovementScript_WalkToGym
+PewterMovementScript_WalkToGym:
+
+PalletMovementScriptPointerTable::
+	dw PalletMovementScript_OakMoveLeft
+	dw PalletMovementScript_PlayerMoveLeft
+	dw PalletMovementScript_WaitAndWalkToLab
+	dw PalletMovementScript_WalkToLab
+	dw PalletMovementScript_Done
+
+RLEList_ProfOakWalkToLab:
+	db NPC_MOVEMENT_DOWN, 5
+	db NPC_MOVEMENT_LEFT, 1
+	db NPC_MOVEMENT_DOWN, 5
+	db NPC_MOVEMENT_RIGHT, 3
+	db NPC_MOVEMENT_UP, 1
+	db NPC_CHANGE_FACING, 1
+	db -1
+
+RLEList_PlayerWalkToLab:
+	db D_UP, 2
+	db D_RIGHT, 3
+	db D_DOWN, 5
+	db D_LEFT, 1
+	db D_DOWN, 6
+	db -1
+
+PewterMuseumGuyMovementScriptPointerTable::
+	dw PewterMovementScript_WalkToMuseum
 	dw PewterMovementScript_Done
+
+RLEList_PewterMuseumPlayer:
+	db NO_INPUT, 1
+	db D_UP, 3
+	db D_LEFT, 13
+	db D_UP, 6
+	db -1
+
+RLEList_PewterMuseumGuy:
+	db NPC_MOVEMENT_UP, 6
+	db NPC_MOVEMENT_LEFT, 13
+	db NPC_MOVEMENT_UP, 3
+	db NPC_MOVEMENT_LEFT, 1
+	db -1
 
 PewterGymGuyMovementScriptPointerTable::
 	dw PewterMovementScript_WalkToGym
 	dw PewterMovementScript_Done
-PewterMovementScript_WalkToGym:
-	ld a, BANK(Music_MuseumGuy)
-	ld [wAudioROMBank], a
-	ld [wAudioSavedROMBank], a
-	ld a, MUSIC_MUSEUM_GUY
-	ld [wNewSoundID], a
-	call PlaySound
-	ld a, [wSpriteIndex]
-	swap a

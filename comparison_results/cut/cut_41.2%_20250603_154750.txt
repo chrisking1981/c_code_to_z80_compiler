@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: cut.asm ===
+Timestamp: 2025-06-03 15:47:50
+
+Functional similarity: 41.2%
+Overall similarity: 38.6%
+Original lines: 233
+Compiled lines: 63
+Perfect match: False
+Grade: F
+
+=== DIFFERENCES ===
+1. Line 8 mismatch:
+   Original:  jr nz, .nothingToCut
+   Compiled:  ld a, [wTileInFrontOfPlayer]
+
+2. Line 9 mismatch:
+   Original:  ld a, [wTileInFrontOfPlayer]
+   Compiled:  cp $50
+
+3. Line 10 mismatch:
+   Original:  cp $50
+   Compiled:  jr .canCut
+
+4. Line 11 mismatch:
+   Original:  jr nz, .nothingToCut
+   Compiled:  .overworld
+
+5. Line 12 mismatch:
+   Original:  jr .canCut
+   Compiled:  dec a
+
+6. Line 13 mismatch:
+   Original:  .overworld
+   Compiled:  ld a, [wTileInFrontOfPlayer]
+
+7. Line 14 mismatch:
+   Original:  dec a
+   Compiled:  cp $3d
+
+8. Line 15 mismatch:
+   Original:  ld a, [wTileInFrontOfPlayer]
+   Compiled:  cp $52
+
+9. Line 16 mismatch:
+   Original:  cp $3d
+   Compiled:  .nothingToCut
+
+10. Line 17 mismatch:
+   Original:  jr z, .canCut
+   Compiled:  ld hl, .NothingToCutText
+
+11. Missing in compiled (5 lines):
+   ldh [hWY], a
+   call UpdateSprites
+   jp RedrawMapView
+   UsedCutText:
+   text_far _UsedCutText
+

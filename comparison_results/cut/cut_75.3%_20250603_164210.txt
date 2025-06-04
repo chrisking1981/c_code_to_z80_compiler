@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: cut.asm ===
+Timestamp: 2025-06-03 16:42:10
+
+Functional similarity: 75.3%
+Overall similarity: 71.4%
+Original lines: 233
+Compiled lines: 200
+Perfect match: False
+Grade: B-
+
+=== DIFFERENCES ===
+1. Line 6 mismatch:
+   Original:  jr z, .overworld
+   Compiled:  cp GYM
+
+2. Line 7 mismatch:
+   Original:  cp GYM
+   Compiled:  ld a, [wTileInFrontOfPlayer]
+
+3. Line 8 mismatch:
+   Original:  jr nz, .nothingToCut
+   Compiled:  cp $50
+
+4. Line 9 mismatch:
+   Original:  ld a, [wTileInFrontOfPlayer]
+   Compiled:  jr ...canCut
+
+5. Line 10 mismatch:
+   Original:  cp $50
+   Compiled:  ...overworld
+
+6. Line 11 mismatch:
+   Original:  jr nz, .nothingToCut
+   Compiled:  dec a
+
+7. Line 12 mismatch:
+   Original:  jr .canCut
+   Compiled:  ld a, [wTileInFrontOfPlayer]
+
+8. Line 13 mismatch:
+   Original:  .overworld
+   Compiled:  cp $3d
+
+9. Line 14 mismatch:
+   Original:  dec a
+   Compiled:  cp $52
+
+10. Line 15 mismatch:
+   Original:  ld a, [wTileInFrontOfPlayer]
+   Compiled:  ...nothingToCut
+
+11. Missing in compiled (5 lines):
+   add hl, bc
+   .centerTileBlock
+   add hl, bc
+   .aboveCenter
+   ld e, $2
+

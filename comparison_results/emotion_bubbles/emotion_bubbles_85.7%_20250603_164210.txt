@@ -1,0 +1,54 @@
+=== DETAILED COMPARISON: emotion_bubbles.asm ===
+Timestamp: 2025-06-03 16:42:10
+
+Functional similarity: 85.7%
+Overall similarity: 80.8%
+Original lines: 69
+Compiled lines: 64
+Perfect match: False
+Grade: B+
+
+=== DIFFERENCES ===
+1. Line 25 mismatch:
+   Original:  .next
+   Compiled:  ...next
+
+2. Line 27 mismatch:
+   Original:  .loop
+   Compiled:  ...loop
+
+3. Line 58 mismatch:
+   Original:  dw ShockEmote
+   Compiled:  EmotionBubblesOAMBlock:
+
+4. Line 59 mismatch:
+   Original:  dw QuestionEmote
+   Compiled:  db $F8, 0
+
+5. Line 60 mismatch:
+   Original:  dw HappyEmote
+   Compiled:  db $F9, 0
+
+6. Line 61 mismatch:
+   Original:  EmotionBubblesOAMBlock:
+   Compiled:  db $FA, 0
+
+7. Line 62 mismatch:
+   Original:  db $f8, 0
+   Compiled:  db $FB, 0
+
+8. Line 63 mismatch:
+   Original:  db $f9, 0
+   Compiled:  EmotionBubbles:
+
+9. Line 64 mismatch:
+   Original:  db $fa, 0
+   Compiled:  db ShockEmote
+
+10. Missing in compiled (5 lines):
+   db $fb, 0
+   EmotionBubbles:
+   ShockEmote: INCBIN "gfx/emotes/shock.2bpp"
+   QuestionEmote: INCBIN "gfx/emotes/question.2bpp"
+   HappyEmote: INCBIN "gfx/emotes/happy.2bpp"
+

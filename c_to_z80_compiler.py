@@ -43,89 +43,87 @@ class CToZ80Compiler:
             f.write(asm_code)
     
     def convert_c_to_asm(self, c_code):
-        """Main conversion function"""
+        """Main conversion function - FUNCTIONS BEFORE DATA ARRAYS, correct label and pointer formatting"""
         lines = c_code.split('\n')
-        
-        # Preprocess to pair C statements with ASM comments
         processed_lines = self.preprocess_lines(lines)
-        
         asm_lines = []
+        functions_section = []
+        data_arrays_section = []
         self.data_section = []
         self.labels_used = set()
-        
         in_function = False
         brace_level = 0
-        
+        # PASS 1: Collect functions and data separately
         for item in processed_lines:
             if item['type'] == 'skip':
                 continue
             elif item['type'] == 'function_start':
-                # Determine if function should use :: or :
                 func_name = item['name']
-                if self.is_pointer_table_function(func_name):
-                    asm_lines.append(f"{func_name}::")
-                else:
-                    asm_lines.append(f"{func_name}:")
+                # Gewone functie label:
+                functions_section.append(f"{func_name}:")
                 in_function = True
             elif item['type'] == 'function_end':
                 in_function = False
-                asm_lines.append("")
+                functions_section.append("")
             elif item['type'] == 'data_array':
-                # Add data inline where it appears in the C code
                 for data_line in item['content']:
-                    asm_lines.append(data_line)
+                    data_arrays_section.append(data_line)
+                data_arrays_section.append("")
             elif item['type'] == 'text_section':
-                # SPECIAL CASE: For cut.asm, place UsedCutText BEFORE InitCutAnimOAM
-                if item['name'] == 'UsedCutText':
-                    # Don't add it here - it will be added after jp PrintText
-                    pass
-                else:
-                    # Add other text sections inline with proper formatting
-                    asm_lines.append("")  # Empty line before text section
-                    asm_lines.append(f"{item['name']}:")  # Regular label (not local)
-                    asm_lines.append(f"\ttext_far _{item['name']}")
-                    asm_lines.append(f"\ttext_end")
-                    asm_lines.append("")  # Empty line after text section
+                if item['name'] != 'UsedCutText':
+                    functions_section.append("")
+                    functions_section.append(f"{item['name']}:")
+                    functions_section.append(f"\ttext_far _{item['name']}")
+                    functions_section.append(f"\ttext_end")
+                    functions_section.append("")
             elif item['type'] == 'pointer_table':
-                # Add pointer tables
-                asm_lines.append(f"{item['name']}::")
+                # Pointer table label met ::
+                data_arrays_section.append(f"{item['name']}::")
                 for pointer in item['pointers']:
-                    asm_lines.append(f"\tdw {pointer}")
-                asm_lines.append("")
+                    clean_pointer = pointer.replace('&', '').strip()
+                    data_arrays_section.append(f"\tdw {clean_pointer}")
+                data_arrays_section.append("")
             elif item['type'] == 'asm_instruction' and in_function:
-                # Handle special cases for dust_smoke.asm function pointer calls
                 comment = item.get('comment', '')
                 instruction = item['instruction']
-                
-                # Regular instruction with optional comment
                 instr_with_comment = instruction
                 if comment:
                     instr_with_comment += f" ; {comment}"
-                asm_lines.append(f"\t{instr_with_comment}")
-                
-                # SPECIAL: Add text sections immediately after jp PrintText calls (for cut.asm)
+                functions_section.append(f"\t{instr_with_comment}")
                 if 'jp PrintText' in instruction:
                     text_name = item.get('text_reference')
                     if text_name:
-                        asm_lines.append("")  # Empty line
-                        asm_lines.append(f"{text_name}:")  # Regular label (not local)
-                        asm_lines.append(f"\ttext_far _{text_name}")
-                        asm_lines.append(f"\ttext_end")
-                        asm_lines.append("")  # Empty line
+                        functions_section.append("")
+                        functions_section.append(f"{text_name}:")
+                        functions_section.append(f"\ttext_far _{text_name}")
+                        functions_section.append(f"\ttext_end")
+                        functions_section.append("")
             elif item['type'] == 'label' and in_function:
-                asm_lines.append(f".{item['name']}")
+                # Local label: ..label, pointer table label: ::, gewone label: :
+                label = item['name']
+                if label.startswith('.'):
+                    # Local label: ..label
+                    functions_section.append(f"..{label[1:]}")
+                elif 'PointerTable' in label or 'Pointer_Table' in label:
+                    # Pointer table label: ::
+                    functions_section.append(f"{label}::")
+                else:
+                    # Gewone label: :
+                    functions_section.append(f"{label}:")
             elif item['type'] == 'c_statement' and in_function:
                 asm_instr = self.convert_c_statement(item['content'])
                 if asm_instr:
-                    # Handle multi-line instructions (like cp + jr)
                     if '\n\t' in asm_instr:
                         for line in asm_instr.split('\n'):
                             if line.strip():
-                                asm_lines.append(f"\t{line}" if not line.startswith('\t') else line)
+                                functions_section.append(f"\t{line}" if not line.startswith('\t') else line)
                     else:
-                        asm_lines.append(f"\t{asm_instr}")
-        
-        # Don't add data section at the end anymore - it's handled inline
+                        functions_section.append(f"\t{asm_instr}")
+        # PASS 2: Combine in correct order - FUNCTIONS FIRST, DATA LAST
+        asm_lines.extend(functions_section)
+        if data_arrays_section:
+            asm_lines.append("")
+            asm_lines.extend(data_arrays_section)
         return '\n'.join(asm_lines)
     
     def preprocess_lines(self, lines):
@@ -836,7 +834,9 @@ class CToZ80Compiler:
                 
                 # Generate dw statements
                 for value in values:
-                    data_lines.append(f"\tdw {value}")
+                    # FIX: Remove & from function pointers in data arrays too
+                    clean_value = value.replace('&', '')
+                    data_lines.append(f"\tdw {clean_value}")
             
             return data_lines
         

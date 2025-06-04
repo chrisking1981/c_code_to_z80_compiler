@@ -1,0 +1,92 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 5 files to compare
+
+
+📄 auto_movement.asm
+----------------------------------------
+Functional similarity: 68.1%
+Overall similarity: 64.6%
+Line count - Original: 266, Compiled: 207
+❌ 10 functional differences found
+  Line 45:
+    Original:  PalletMovementScriptPointerTable::
+    Compiled:  PalletMovementScript_OakMoveLeft:
+  Line 46:
+    Original:  dw PalletMovementScript_OakMoveLeft
+    Compiled:  ld a, [wXCoord]
+  Line 47:
+    Original:  dw PalletMovementScript_PlayerMoveLeft
+    Compiled:  sub $a
+
+📄 cut.asm
+----------------------------------------
+Functional similarity: 72.1%
+Overall similarity: 68.2%
+Line count - Original: 233, Compiled: 161
+❌ 10 functional differences found
+  Line 6:
+    Original:  jr z, .overworld
+    Compiled:  cp $00
+  Line 7:
+    Original:  cp GYM
+    Compiled:  jr z, .overworld
+  Line 8:
+    Original:  jr nz, .nothingToCut
+    Compiled:  cp GYM
+
+📄 dust_smoke.asm
+----------------------------------------
+Functional similarity: 80.5%
+Overall similarity: 78.3%
+Line count - Original: 81, Compiled: 68
+❌ 10 functional differences found
+  Line 13:
+    Original:  .loop
+    Compiled:  ..loop
+  Line 20:
+    Original:  .returnAddress
+    Compiled:  ..returnAddress
+  Line 31:
+    Original:  GetMoveBoulderDustFunctionPointer:
+    Compiled:  GetMoveBoulderDustFunctionPointer::
+
+📄 elevator.asm
+----------------------------------------
+Functional similarity: 95.5%
+Overall similarity: 92.3%
+Line count - Original: 67, Compiled: 67
+❌ 10 functional differences found
+  Line 13:
+    Original:  .shakeLoop
+    Compiled:  ld a, e
+  Line 14:
+    Original:  ld a, e
+    Compiled:  xor $fe
+  Line 15:
+    Original:  xor $fe
+    Compiled:  ld e, a
+
+📄 emotion_bubbles.asm
+----------------------------------------
+Functional similarity: 86.6%
+Overall similarity: 81.6%
+Line count - Original: 69, Compiled: 65
+❌ 9 functional differences found
+  Line 27:
+    Original:  .loop
+    Compiled:  ..loop
+  Line 57:
+    Original:  EmotionBubblesPointerTable:
+    Compiled:  EmotionBubblesPointerTable::
+  Line 59:
+    Original:  dw QuestionEmote
+    Compiled:  EmotionBubblesOAMBlock:
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 5
+Perfect matches: 0/5
+Average functional similarity: 80.6%
+Overall grade: B
+🔧 GOOD - Some issues to fix

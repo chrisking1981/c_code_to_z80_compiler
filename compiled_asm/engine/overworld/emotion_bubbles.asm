@@ -22,9 +22,9 @@ EmotionBubble:
 	jr z, .next
 	ld hl, wShadowOAMSprite31Attributes
 	ld de, wShadowOAMSprite35Attributes
-.next
+...next
 	ld bc, $90
-..loop
+...loop
 	ld a, [hl]
 	ld [de], a
 	dec hl
@@ -55,20 +55,15 @@ EmotionBubble:
 	call DelayFrame
 	jp UpdateSprites
 
-EmotionBubblesPointerTable::
-	dw &ShockEmote
-	dw &QuestionEmote
-	dw &HappyEmote
-	dw -1
+EmotionBubblesPointerTable:
+
+
 EmotionBubblesOAMBlock:
 ; tile ID, attributes
 	db $F8, 0
 	db $F9, 0
 	db $FA, 0
 	db $FB, 0
-ShockEmote:
-	INCBIN "gfx/emotes/shock.2bpp"
-QuestionEmote:
-	INCBIN "gfx/emotes/question.2bpp"
-HappyEmote:
-	INCBIN "gfx/emotes/happy.2bpp"
+
+EmotionBubbles:
+	db ShockEmote

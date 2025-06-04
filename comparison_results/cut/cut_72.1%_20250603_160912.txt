@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: cut.asm ===
+Timestamp: 2025-06-03 16:09:12
+
+Functional similarity: 72.1%
+Overall similarity: 68.2%
+Original lines: 233
+Compiled lines: 161
+Perfect match: False
+Grade: C+
+
+=== DIFFERENCES ===
+1. Line 6 mismatch:
+   Original:  jr z, .overworld
+   Compiled:  cp $00
+
+2. Line 7 mismatch:
+   Original:  cp GYM
+   Compiled:  jr z, .overworld
+
+3. Line 8 mismatch:
+   Original:  jr nz, .nothingToCut
+   Compiled:  cp GYM
+
+4. Line 11 mismatch:
+   Original:  jr nz, .nothingToCut
+   Compiled:  jr .canCut
+
+5. Line 12 mismatch:
+   Original:  jr .canCut
+   Compiled:  .overworld
+
+6. Line 13 mismatch:
+   Original:  .overworld
+   Compiled:  dec a
+
+7. Line 14 mismatch:
+   Original:  dec a
+   Compiled:  ld a, [wTileInFrontOfPlayer]
+
+8. Line 15 mismatch:
+   Original:  ld a, [wTileInFrontOfPlayer]
+   Compiled:  cp $3d
+
+9. Line 16 mismatch:
+   Original:  cp $3d
+   Compiled:  cp $52
+
+10. Line 17 mismatch:
+   Original:  jr z, .canCut
+   Compiled:  .nothingToCut
+
+11. Missing in compiled (5 lines):
+   ReplaceTreeTileBlock:
+   push de
+   ld a, [wCurMapWidth]
+   add 6
+   ld c, a
+

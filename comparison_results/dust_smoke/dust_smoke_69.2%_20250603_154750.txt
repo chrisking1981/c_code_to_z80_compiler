@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: dust_smoke.asm ===
+Timestamp: 2025-06-03 15:47:50
+
+Functional similarity: 69.2%
+Overall similarity: 65.7%
+Original lines: 81
+Compiled lines: 49
+Perfect match: False
+Grade: C
+
+=== DIFFERENCES ===
+1. Line 13 mismatch:
+   Original:  .loop
+   Compiled:  ..loop
+
+2. Line 20 mismatch:
+   Original:  .returnAddress
+   Compiled:  ..returnAddress
+
+3. Line 31 mismatch:
+   Original:  GetMoveBoulderDustFunctionPointer:
+   Compiled:  LoadSmokeTileFourTimes:
+
+4. Line 32 mismatch:
+   Original:  ld a, [wSpritePlayerStateData1FacingDirection]
+   Compiled:  ld hl, vChars1 tile $7c
+
+5. Line 33 mismatch:
+   Original:  ld hl, MoveBoulderDustFunctionPointerTable
+   Compiled:  ld c, 4
+
+6. Line 34 mismatch:
+   Original:  ld c, a
+   Compiled:  ..loop
+
+7. Line 35 mismatch:
+   Original:  ld b, $0
+   Compiled:  push bc
+
+8. Line 36 mismatch:
+   Original:  add hl, bc
+   Compiled:  push hl
+
+9. Line 37 mismatch:
+   Original:  ld a, [hli]
+   Compiled:  call LoadSmokeTile
+
+10. Line 38 mismatch:
+   Original:  ld [wCoordAdjustmentAmount], a
+   Compiled:  pop hl
+
+11. Missing in compiled (5 lines):
+   pop hl
+   ret
+   MACRO boulder_dust_adjust
+   db \1, \2
+   dw \3
+

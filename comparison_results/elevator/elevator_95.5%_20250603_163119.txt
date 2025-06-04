@@ -1,0 +1,51 @@
+=== DETAILED COMPARISON: elevator.asm ===
+Timestamp: 2025-06-03 16:31:19
+
+Functional similarity: 95.5%
+Overall similarity: 92.3%
+Original lines: 67
+Compiled lines: 67
+Perfect match: False
+Grade: A+
+
+=== DIFFERENCES ===
+1. Line 13 mismatch:
+   Original:  .shakeLoop
+   Compiled:  ld a, e
+
+2. Line 14 mismatch:
+   Original:  ld a, e
+   Compiled:  xor $fe
+
+3. Line 15 mismatch:
+   Original:  xor $fe
+   Compiled:  ld e, a
+
+4. Line 16 mismatch:
+   Original:  ld e, a
+   Compiled:  add d
+
+5. Line 17 mismatch:
+   Original:  add d
+   Compiled:  ldh [hSCY], a
+
+6. Line 18 mismatch:
+   Original:  ldh [hSCY], a
+   Compiled:  push bc
+
+7. Line 19 mismatch:
+   Original:  push bc
+   Compiled:  ld c, BANK(SFX_Collision_1)
+
+8. Line 20 mismatch:
+   Original:  ld c, BANK(SFX_Collision_1)
+   Compiled:  ld a, SFX_COLLISION
+
+9. Line 21 mismatch:
+   Original:  ld a, SFX_COLLISION
+   Compiled:  call PlayMusic
+
+10. Line 22 mismatch:
+   Original:  call PlayMusic
+   Compiled:  pop bc
+

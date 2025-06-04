@@ -1,0 +1,28 @@
+🔍 ASSEMBLY FILE COMPARISON ANALYSIS
+============================================================
+Found 1 files to compare
+
+
+📄 cut.asm
+----------------------------------------
+Functional similarity: 84.2%
+Overall similarity: 80.8%
+Line count - Original: 233, Compiled: 209
+❌ 10 functional differences found
+  Line 1:
+    Original:  UsedCut:
+    Compiled:  CutAnimationOffsets:
+  Line 2:
+    Original:  xor a
+    Compiled:  db 8, $24
+  Line 3:
+    Original:  ld [wActionResultOrTookBattleTurn], a
+    Compiled:  db 4, $14
+
+📊 OVERALL SUMMARY
+============================================================
+Files analyzed: 1
+Perfect matches: 0/1
+Average functional similarity: 84.2%
+Overall grade: B
+🔧 GOOD - Some issues to fix

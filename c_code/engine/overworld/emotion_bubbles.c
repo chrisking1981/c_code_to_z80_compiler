@@ -1,12 +1,12 @@
 #include <stdint.h>
 
-// Extern declarations for variables and functions
+// Extern declarations for variables/functions
 extern uint8_t wWhichEmotionBubble;
 extern uint8_t wUpdateSpritesEnabled;
 extern uint8_t wMovementFlags;
-extern uint8_t wShadowOAMSprite31Attributes;
 extern uint8_t wShadowOAMSprite35Attributes;
 extern uint8_t wShadowOAMSprite39Attributes;
+extern uint8_t wShadowOAMSprite31Attributes;
 extern uint8_t wSpritePlayerStateData1YPixels;
 extern uint8_t wEmotionBubbleSpriteIndex;
 extern void CopyVideoData(void);
@@ -17,9 +17,8 @@ extern void UpdateSprites(void);
 
 // Constants
 #define BIT_LEDGE_OR_FISHING 0
-#define EmotionBubblesOAMBlock 0x00 // Placeholder for actual OAM block address
 
-// Function implementation
+// Function to handle Emotion Bubbles
 void EmotionBubble(void) {
     // ld a, [wWhichEmotionBubble]
     uint8_t a = wWhichEmotionBubble;
@@ -30,19 +29,19 @@ void EmotionBubble(void) {
     // ld hl, EmotionBubblesPointerTable
     uint16_t hl = (uint16_t)EmotionBubblesPointerTable;
     // add hl, bc
-    hl += (b << 8) | c; /* add hl, bc */
+    hl += (b | (c << 8));
     // add hl, bc
-    hl += (b << 8) | c; /* add hl, bc */
+    hl += (b | (c << 8));
     // ld e, [hl]
-    uint8_t e = *((uint8_t*)hl);
+    uint8_t e = *(uint8_t*)hl;
     // inc hl
     hl++;
     // ld d, [hl]
-    uint8_t d = *((uint8_t*)hl);
+    uint8_t d = *(uint8_t*)hl;
     // ld hl, vChars1 tile $78
     hl = (uint16_t)&vChars1 + 0x78; /* tile $78 */
     // lb bc, BANK(EmotionBubbles), 4
-    // Placeholder for bank loading logic
+    // Assuming BANK is a macro that handles bank switching
     // call CopyVideoData
     CopyVideoData();
     // ld a, [wUpdateSpritesEnabled]
@@ -62,16 +61,16 @@ void EmotionBubble(void) {
     // ld de, wShadowOAMSprite39Attributes
     uint16_t de = (uint16_t)&wShadowOAMSprite39Attributes;
     // jr z, .next
-    if (!(a & (1 << BIT_LEDGE_OR_FISHING))) goto next;
+    if (!(a & (1 << BIT_LEDGE_OR_FISHING))) goto ..next;
     // ld hl, wShadowOAMSprite31Attributes
     hl = (uint16_t)&wShadowOAMSprite31Attributes;
     // ld de, wShadowOAMSprite35Attributes
     de = (uint16_t)&wShadowOAMSprite35Attributes;
 
-next:
+..next:
     // ld bc, $90
     uint16_t bc = 0x90;
-.loop:
+..loop:
     // ld a, [hl]
     a = *(uint8_t*)hl;
     // ld [de], a
@@ -87,7 +86,7 @@ next:
     // or b
     a |= b;
     // jr nz, .loop
-    if (a != 0) goto loop;
+    if (a != 0) goto ..loop;
 
     // get the screen coordinates of the sprite the bubble is to be displayed above
     // ld hl, wSpritePlayerStateData1YPixels
@@ -95,13 +94,13 @@ next:
     // ld a, [wEmotionBubbleSpriteIndex]
     a = wEmotionBubbleSpriteIndex;
     // swap a
-    a = (a << 4) | (a >> 4); // Simulate swap
+    a = (a << 4) | (a >> 4); // Simulating swap
     // ld c, a
     c = a;
     // ld b, 0
     b = 0;
     // add hl, bc
-    hl += (b << 8) | c; /* add hl, bc */
+    hl += (b | (c << 8));
     // ld a, [hli]
     a = *(uint8_t*)hl;
     // ld b, a
@@ -111,12 +110,12 @@ next:
     // ld a, [hl]
     a = *(uint8_t*)hl;
     // add $8
-    a += 0x08;
+    a += 0x8;
     // ld c, a
     c = a;
 
     // ld de, EmotionBubblesOAMBlock
-    de = EmotionBubblesOAMBlock;
+    de = (uint16_t)&EmotionBubblesOAMBlock;
     // xor a
     a = 0;
     // call WriteOAMBlock
@@ -135,25 +134,25 @@ next:
     UpdateSprites();
 }
 
-// Data arrays
-const uint16_t EmotionBubblesPointerTable[] = {
-    (uint16_t)&ShockEmote,
-    (uint16_t)&QuestionEmote,
-    (uint16_t)&HappyEmote,
-    -1 // end
-};
+// Pointer table for Emotion Bubbles
+void EmotionBubblesPointerTable(void) {
+    // entries correspond to *_BUBBLE constants
+    dw ShockEmote;
+    dw QuestionEmote;
+    dw HappyEmote;
+}
 
+// OAM Block for Emotion Bubbles
 const uint8_t EmotionBubblesOAMBlock[] = {
     0xf8, 0,
     0xf9, 0,
     0xfa, 0,
-    0xfb, 0
+    0xfb, 0,
 };
 
-// Graphics sections
-// ShockEmote:    INCBIN "gfx/emotes/shock.2bpp"
-const uint8_t ShockEmote_INCBIN[] = { /* gfx/emotes/shock.2bpp */ };
-// QuestionEmote: INCBIN "gfx/emotes/question.2bpp"
-const uint8_t QuestionEmote_INCBIN[] = { /* gfx/emotes/question.2bpp */ };
-// HappyEmote:    INCBIN "gfx/emotes/happy.2bpp"
-const uint8_t HappyEmote_INCBIN[] = { /* gfx/emotes/happy.2bpp */ };
+// Emotion Bubbles graphics
+const uint8_t EmotionBubbles[] = {
+    ShockEmote,    // INCBIN "gfx/emotes/shock.2bpp"
+    QuestionEmote, // INCBIN "gfx/emotes/question.2bpp"
+    HappyEmote,    // INCBIN "gfx/emotes/happy.2bpp"
+};

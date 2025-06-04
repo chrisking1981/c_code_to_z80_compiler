@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: dust_smoke.asm ===
+Timestamp: 2025-06-03 16:22:45
+
+Functional similarity: 80.5%
+Overall similarity: 78.3%
+Original lines: 81
+Compiled lines: 68
+Perfect match: False
+Grade: B
+
+=== DIFFERENCES ===
+1. Line 13 mismatch:
+   Original:  .loop
+   Compiled:  ..loop
+
+2. Line 20 mismatch:
+   Original:  .returnAddress
+   Compiled:  ..returnAddress
+
+3. Line 31 mismatch:
+   Original:  GetMoveBoulderDustFunctionPointer:
+   Compiled:  GetMoveBoulderDustFunctionPointer::
+
+4. Line 52 mismatch:
+   Original:  MACRO boulder_dust_adjust
+   Compiled:  LoadSmokeTileFourTimes:
+
+5. Line 53 mismatch:
+   Original:  db \1, \2
+   Compiled:  ld hl, vChars1 tile $7c
+
+6. Line 54 mismatch:
+   Original:  dw \3
+   Compiled:  ld c, 4
+
+7. Line 55 mismatch:
+   Original:  ENDM
+   Compiled:  ..loop
+
+8. Line 56 mismatch:
+   Original:  MoveBoulderDustFunctionPointerTable:
+   Compiled:  push bc
+
+9. Line 57 mismatch:
+   Original:  boulder_dust_adjust -1, 0, AdjustOAMBlockYPos
+   Compiled:  push hl
+
+10. Line 58 mismatch:
+   Original:  boulder_dust_adjust 1, 0, AdjustOAMBlockYPos
+   Compiled:  call LoadSmokeTile
+
+11. Missing in compiled (5 lines):
+   ld bc, 1 tiles
+   add hl, bc
+   pop bc
+   dec c
+   jr nz, .loop
+

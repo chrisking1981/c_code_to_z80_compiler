@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: dust_smoke.asm ===
+Timestamp: 2025-06-03 16:42:10
+
+Functional similarity: 81.6%
+Overall similarity: 81.2%
+Original lines: 81
+Compiled lines: 71
+Perfect match: False
+Grade: B
+
+=== DIFFERENCES ===
+1. Line 13 mismatch:
+   Original:  .loop
+   Compiled:  ...loop
+
+2. Line 20 mismatch:
+   Original:  .returnAddress
+   Compiled:  jr .*hl
+
+3. Line 21 mismatch:
+   Original:  ldh a, [rOBP1]
+   Compiled:  ...returnAddress
+
+4. Line 22 mismatch:
+   Original:  xor %01100100
+   Compiled:  ldh a, [rOBP1]
+
+5. Line 23 mismatch:
+   Original:  ldh [rOBP1], a
+   Compiled:  xor %01100100
+
+6. Line 24 mismatch:
+   Original:  call Delay3
+   Compiled:  ldh [rOBP1], a
+
+7. Line 25 mismatch:
+   Original:  pop bc
+   Compiled:  call Delay3
+
+8. Line 26 mismatch:
+   Original:  dec c
+   Compiled:  pop bc
+
+9. Line 27 mismatch:
+   Original:  jr nz, .loop
+   Compiled:  dec c
+
+10. Line 28 mismatch:
+   Original:  pop af
+   Compiled:  jr nz, .loop
+
+11. Missing in compiled (5 lines):
+   dec c
+   jr nz, .loop
+   ret
+   LoadSmokeTile:
+   ld de, SSAnneSmokePuffTile
+

@@ -1,0 +1,54 @@
+=== DETAILED COMPARISON: elevator.asm ===
+Timestamp: 2025-06-03 16:42:10
+
+Functional similarity: 94.7%
+Overall similarity: 92.9%
+Original lines: 67
+Compiled lines: 66
+Perfect match: False
+Grade: A
+
+=== DIFFERENCES ===
+1. Line 1 mismatch:
+   Original:  ShakeElevator::
+   Compiled:  ShakeElevator:
+
+2. Line 13 mismatch:
+   Original:  .shakeLoop
+   Compiled:  ...shakeLoop
+
+3. Line 35 mismatch:
+   Original:  .musicLoop
+   Compiled:  ...musicLoop
+
+4. Line 38 mismatch:
+   Original:  jr z, .musicLoop
+   Compiled:  call UpdateSprites
+
+5. Line 39 mismatch:
+   Original:  call UpdateSprites
+   Compiled:  jp PlayDefaultMusic
+
+6. Line 40 mismatch:
+   Original:  jp PlayDefaultMusic
+   Compiled:  ShakeElevatorRedrawRow:
+
+7. Line 41 mismatch:
+   Original:  ShakeElevatorRedrawRow:
+   Compiled:  ld hl, wMapViewVRAMPointer + 1
+
+8. Line 42 mismatch:
+   Original:  ld hl, wMapViewVRAMPointer + 1
+   Compiled:  ld a, [hld]
+
+9. Line 43 mismatch:
+   Original:  ld a, [hld]
+   Compiled:  push af
+
+10. Line 44 mismatch:
+   Original:  push af
+   Compiled:  ld a, [hl]
+
+11. Missing in compiled (1 lines):
+   jp Delay3
+

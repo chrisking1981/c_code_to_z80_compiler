@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: auto_movement.asm ===
+Timestamp: 2025-06-03 16:22:45
+
+Functional similarity: 41.7%
+Overall similarity: 38.9%
+Original lines: 266
+Compiled lines: 70
+Perfect match: False
+Grade: F
+
+=== DIFFERENCES ===
+1. Line 51 mismatch:
+   Original:  PalletMovementScript_OakMoveLeft:
+   Compiled:  RLEList_ProfOakWalkToLab:
+
+2. Line 52 mismatch:
+   Original:  ld a, [wXCoord]
+   Compiled:  db NPC_MOVEMENT_DOWN, 5
+
+3. Line 53 mismatch:
+   Original:  sub $a
+   Compiled:  db NPC_MOVEMENT_LEFT, 1
+
+4. Line 54 mismatch:
+   Original:  ld [wNumStepsToTake], a
+   Compiled:  db NPC_MOVEMENT_DOWN, 5
+
+5. Line 55 mismatch:
+   Original:  jr z, .playerOnLeftTile
+   Compiled:  db NPC_MOVEMENT_RIGHT, 3
+
+6. Line 56 mismatch:
+   Original:  ld b, 0
+   Compiled:  db NPC_MOVEMENT_UP, 1
+
+7. Line 57 mismatch:
+   Original:  ld c, a
+   Compiled:  db NPC_CHANGE_FACING, 1
+
+8. Line 58 mismatch:
+   Original:  ld hl, wNPCMovementDirections2
+   Compiled:  db -1
+
+9. Line 59 mismatch:
+   Original:  ld a, NPC_MOVEMENT_LEFT
+   Compiled:  RLEList_PlayerWalkToLab:
+
+10. Line 60 mismatch:
+   Original:  call FillMemory
+   Compiled:  db D_UP, 2
+
+11. Missing in compiled (5 lines):
+   ld [wNPCMovementScriptFunctionNum], a
+   .done
+   ld hl, wStatusFlags7
+   set BIT_NO_MAP_MUSIC, [hl]
+   ld a, SELECT | START | D_RIGHT | D_LEFT | D_UP | D_DOWN
+

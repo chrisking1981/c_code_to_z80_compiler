@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: auto_movement.asm ===
+Timestamp: 2025-06-03 15:46:58
+
+Functional similarity: 81.2%
+Overall similarity: 75.6%
+Original lines: 266
+Compiled lines: 197
+Perfect match: False
+Grade: B
+
+=== DIFFERENCES ===
+1. Line 51 mismatch:
+   Original:  PalletMovementScript_OakMoveLeft:
+   Compiled:  PalletMovementScriptPointerTable::
+
+2. Line 52 mismatch:
+   Original:  ld a, [wXCoord]
+   Compiled:  dw PalletMovementScript_OakMoveLeft
+
+3. Line 53 mismatch:
+   Original:  sub $a
+   Compiled:  dw PalletMovementScript_PlayerMoveLeft
+
+4. Line 54 mismatch:
+   Original:  ld [wNumStepsToTake], a
+   Compiled:  dw PalletMovementScript_WaitAndWalkToLab
+
+5. Line 55 mismatch:
+   Original:  jr z, .playerOnLeftTile
+   Compiled:  dw PalletMovementScript_WalkToLab
+
+6. Line 56 mismatch:
+   Original:  ld b, 0
+   Compiled:  dw PalletMovementScript_Done
+
+7. Line 57 mismatch:
+   Original:  ld c, a
+   Compiled:  PalletMovementScript_OakMoveLeft:
+
+8. Line 58 mismatch:
+   Original:  ld hl, wNPCMovementDirections2
+   Compiled:  ld a, [wXCoord]
+
+9. Line 59 mismatch:
+   Original:  ld a, NPC_MOVEMENT_LEFT
+   Compiled:  sub $a
+
+10. Line 60 mismatch:
+   Original:  call FillMemory
+   Compiled:  ld [wNumStepsToTake], a
+
+11. Missing in compiled (5 lines):
+   PewterMovementScript_WalkToGym:
+   ld a, BANK(Music_MuseumGuy)
+   ld [wAudioROMBank], a
+   ld [wAudioSavedROMBank], a
+   ld a, MUSIC_MUSEUM_GUY
+

@@ -1,0 +1,58 @@
+=== DETAILED COMPARISON: auto_movement.asm ===
+Timestamp: 2025-06-03 16:09:12
+
+Functional similarity: 68.1%
+Overall similarity: 64.6%
+Original lines: 266
+Compiled lines: 207
+Perfect match: False
+Grade: C
+
+=== DIFFERENCES ===
+1. Line 45 mismatch:
+   Original:  PalletMovementScriptPointerTable::
+   Compiled:  PalletMovementScript_OakMoveLeft:
+
+2. Line 46 mismatch:
+   Original:  dw PalletMovementScript_OakMoveLeft
+   Compiled:  ld a, [wXCoord]
+
+3. Line 47 mismatch:
+   Original:  dw PalletMovementScript_PlayerMoveLeft
+   Compiled:  sub $a
+
+4. Line 48 mismatch:
+   Original:  dw PalletMovementScript_WaitAndWalkToLab
+   Compiled:  ld [wNumStepsToTake], a
+
+5. Line 49 mismatch:
+   Original:  dw PalletMovementScript_WalkToLab
+   Compiled:  jr z, .playerOnLeftTile
+
+6. Line 50 mismatch:
+   Original:  dw PalletMovementScript_Done
+   Compiled:  ld b, 0
+
+7. Line 51 mismatch:
+   Original:  PalletMovementScript_OakMoveLeft:
+   Compiled:  ld c, a
+
+8. Line 52 mismatch:
+   Original:  ld a, [wXCoord]
+   Compiled:  ld hl, wNPCMovementDirections2
+
+9. Line 53 mismatch:
+   Original:  sub $a
+   Compiled:  ld a, NPC_MOVEMENT_LEFT
+
+10. Line 54 mismatch:
+   Original:  ld [wNumStepsToTake], a
+   Compiled:  call FillMemory
+
+11. Missing in compiled (5 lines):
+   xor a
+   ld [wSpritePlayerStateData2MovementByte1], a
+   ld hl, wSimulatedJoypadStatesEnd
+   ld de, RLEList_PewterGymPlayer
+   call DecodeRLEList
+
