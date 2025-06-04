@@ -51,6 +51,10 @@ class CToZ80Compiler:
         data_arrays_section = []
         self.data_section = []
         self.labels_used = set()
+        # Keep track of text labels that are explicitly defined so we don't
+        # emit duplicate text blocks after PrintText calls
+        # preprocess_lines collected names of text sections
+        self.text_labels_defined = getattr(self, 'text_section_names', set())
         in_function = False
         brace_level = 0
         # PASS 1: Collect functions and data separately
@@ -60,7 +64,11 @@ class CToZ80Compiler:
             elif item['type'] == 'function_start':
                 func_name = item['name']
                 # Use :: for known pointer table/global functions
-                label_suffix = '::' if self.is_pointer_table_function(func_name) else ':'
+                # Game Boy ASM uses double colons for global function labels
+                # regardless of how the label appears in the converted C file.
+                # Always output '::' for function labels so the compiled ASM
+                # matches the original source.
+                label_suffix = '::'
                 functions_section.append(f"{func_name}{label_suffix}")
                 in_function = True
             elif item['type'] == 'function_end':
@@ -78,8 +86,10 @@ class CToZ80Compiler:
                     functions_section.append(f"\ttext_end")
                     functions_section.append("")
             elif item['type'] == 'pointer_table':
-                # Emit pointer table exactly where it appears, preserving colon style
-                suffix = '::' if item.get('double_colon') or 'PointerTable' in item['name'] or 'Pointer_Table' in item['name'] else ':'
+                # Emit pointer table exactly where it appears.  The colon style
+                # from the original label is preserved via the double_colon
+                # flag captured during preprocessing.
+                suffix = '::' if item.get('double_colon') else ':'
                 functions_section.append(f"{item['name']}{suffix}")
                 for pointer in item['pointers']:
                     clean_pointer = pointer.replace('&', '').strip()
@@ -94,7 +104,7 @@ class CToZ80Compiler:
                 functions_section.append(f"\t{instr_with_comment}")
                 if 'jp PrintText' in instruction or 'call PrintText' in instruction:
                     text_name = item.get('text_reference')
-                    if text_name:
+                    if text_name and text_name not in self.text_labels_defined:
                         functions_section.append("")
                         label_line = text_name if text_name.startswith('.') else f"{text_name}:"
                         functions_section.append(label_line)
@@ -107,7 +117,10 @@ class CToZ80Compiler:
                 if label.startswith('.'):
                     functions_section.append(label)
                 else:
-                    suffix = '::' if item.get('double_colon') or self.is_pointer_table_function(label) or 'PointerTable' in label or 'Pointer_Table' in label else ':'
+                    # Preserve the colon style used in the original C
+                    # conversion.  When the source label ended with '::' it will
+                    # have item['double_colon'] set.
+                    suffix = '::' if item.get('double_colon') else ':'
                     functions_section.append(f"{label}{suffix}")
             elif item['type'] == 'raw' and in_function:
                 functions_section.append(item['content'])
@@ -130,6 +143,7 @@ class CToZ80Compiler:
     def preprocess_lines(self, lines):
         """Preprocess lines to identify ASM comments and pair them with C statements"""
         processed = []
+        self.text_section_names = set()
         i = 0
         
         while i < len(lines):
@@ -180,6 +194,7 @@ class CToZ80Compiler:
                 text_name = self.extract_text_name(line, lines, i)
                 if text_name:
                     processed.append({'type': 'text_section', 'name': text_name})
+                    self.text_section_names.add(text_name)
                     # Skip the text content lines
                     i = self.skip_text_content(lines, i)
                     continue
@@ -324,16 +339,17 @@ class CToZ80Compiler:
         while j < len(lines) and not lines[j].strip():
             j += 1
         if j < len(lines):
-            label_match = re.match(r"(\w*PointerTable)::?", lines[j].strip())
+            label_match = re.match(r"(\w*PointerTable)(::?)", lines[j].strip())
             if label_match:
                 label = label_match.group(1)
+                double_colon = label_match.group(2) == '::'
                 pointers = []
                 k = j + 1
                 while k < len(lines) and lines[k].strip().startswith('// dw'):
                     ptr = lines[k].strip()[5:].strip()
                     pointers.append(ptr)
                     k += 1
-                return {'name': label, 'pointers': pointers}
+                return {'name': label, 'pointers': pointers, 'double_colon': double_colon}
         return None
     
     def detect_text_after_print(self, lines, current_index):
@@ -401,18 +417,19 @@ class CToZ80Compiler:
                 'ld', 'xor', 'cp', 'jr', 'jp', 'call', 'ret', 'add', 'sub',
                 'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop',
                 'ldh', 'swap', 'srl', 'lb', 'sla', 'sra', 'rl', 'rr', 'rlc', 'rrc',
-                'db', 'dw', 'lda_coord'
+                'db', 'dw', 'lda_coord', 'incbin', 'include', 'dbsprite'
             ])
             if not has_asm_keyword:
                 return False
         
         # Check for ASM keywords at start (expanded list for better coverage)
         asm_keywords = [
-            'ld', 'xor', 'cp', 'jr', 'jp', 'call', 'ret', 'add', 'sub', 
-            'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop', 
+            'ld', 'xor', 'cp', 'jr', 'jp', 'call', 'ret', 'add', 'sub',
+            'inc', 'dec', 'set', 'res', 'bit', 'and', 'or', 'push', 'pop',
             'ldh', 'swap', 'srl', 'sla', 'sra', 'rl', 'rr', 'rlc', 'rrc',
             'lb', 'ccf', 'scf', 'nop', 'halt', 'stop', 'di', 'ei', 'reti',
-            'rst', 'daa', 'cpl', 'predef', 'farcall', 'db', 'dw', 'lda_coord'  # Added predef, farcall, db, dw, lda_coord
+            'rst', 'daa', 'cpl', 'predef', 'farcall', 'db', 'dw', 'lda_coord',
+            'incbin', 'include', 'dbsprite'
         ]
         
         # Check if comment starts with any ASM keyword
@@ -1100,22 +1117,6 @@ class CToZ80Compiler:
         
         return i
     
-    def is_pointer_table_function(self, func_name):
-        """Determine if function should use :: (pointer table) or : (regular function)"""
-        # Functions that are part of pointer tables or accessed via function pointers
-        pointer_functions = {
-            'DisplayBoulderDustAnimation',
-            'DisplayBouncingBoulderDustAnimation', 
-            'DoBoulderDustAnimation',
-            'DoBoulderFallAnimation',
-            'ShakeElevator',  # This IS a pointer table function
-            'PlayerStepOutFromDoor',  # This IS a pointer table function
-            '_EndNPCMovementScript',   # This IS a pointer table function
-            'SetEnemyTrainerToStayAndFaceAnyDirection'  # This IS a pointer table function
-            ,'ClearVariablesOnEnterMap'
-        }
-        
-        return func_name in pointer_functions
 
 
 def main():
