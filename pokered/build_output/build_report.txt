@@ -1,0 +1,22 @@
+Pokemon Red/Blue Build Verification Report
+==================================================
+
+Dependencies:
+  RGBDS: D:\claude 4 projecten chris\c_code_to_z80_compiler\pokered\rgbds
+  Make: GNU Make 4.4.1
+
+ROM Verification Results:
+  pokered.gbc:
+    Status: match
+    Expected: ea9bcae617fdf159b045185467ae58b2e4a48b9a
+    Actual: ea9bcae617fdf159b045185467ae58b2e4a48b9a
+  pokeblue.gbc:
+    Status: match
+    Expected: d7037c83e1ae5b39bde3c30787637ba1d4c48ce2
+    Actual: d7037c83e1ae5b39bde3c30787637ba1d4c48ce2
+  pokeblue_debug.gbc:
+    Status: match
+    Expected: 5b1456177671b79b263c614ea0e7cc9ac542e9c4
+    Actual: 5b1456177671b79b263c614ea0e7cc9ac542e9c4
+
+Overall Result: PASS
