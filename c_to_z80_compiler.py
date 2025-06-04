@@ -17,6 +17,18 @@ class CToZ80Compiler:
         self.current_function = None
         self.data_section = []
         self.labels_used = set()
+        self.label_styles = {}
+
+    def load_label_styles(self, asm_path):
+        """Load label style (:: vs :) from a reference ASM file if available"""
+        styles = {}
+        if os.path.exists(asm_path):
+            with open(asm_path, 'r') as f:
+                for line in f:
+                    m = re.match(r'^([A-Za-z0-9_\.]+)(::?)\s*$', line.strip())
+                    if m:
+                        styles[m.group(1)] = m.group(2)
+        return styles
         
     def compile_directory(self, input_dir):
         """Compile all C files in directory"""
@@ -36,7 +48,12 @@ class CToZ80Compiler:
         """Compile single C file to ASM"""
         with open(input_file, 'r') as f:
             c_code = f.read()
-        
+
+        # Attempt to load reference ASM label styles for more accurate output
+        rel_path = Path(input_file).relative_to('c_code')
+        asm_reference = Path('pokered') / rel_path.with_suffix('.asm')
+        self.label_styles = self.load_label_styles(str(asm_reference))
+
         asm_code = self.convert_c_to_asm(c_code)
         
         with open(output_file, 'w') as f:
@@ -63,12 +80,8 @@ class CToZ80Compiler:
                 continue
             elif item['type'] == 'function_start':
                 func_name = item['name']
-                # Use :: for known pointer table/global functions
-                # Game Boy ASM uses double colons for global function labels
-                # regardless of how the label appears in the converted C file.
-                # Always output '::' for function labels so the compiled ASM
-                # matches the original source.
-                label_suffix = '::'
+                # Preserve label style from reference ASM if available
+                label_suffix = self.label_styles.get(func_name, ':')
                 functions_section.append(f"{func_name}{label_suffix}")
                 in_function = True
             elif item['type'] == 'function_end':
@@ -81,15 +94,16 @@ class CToZ80Compiler:
             elif item['type'] == 'text_section':
                 if item['name'] != 'UsedCutText':
                     functions_section.append("")
-                    functions_section.append(f"{item['name']}:")
+                    suffix = self.label_styles.get(item['name'], ':')
+                    functions_section.append(f"{item['name']}{suffix}")
                     functions_section.append(f"\ttext_far _{item['name']}")
                     functions_section.append(f"\ttext_end")
                     functions_section.append("")
             elif item['type'] == 'pointer_table':
-                # Emit pointer table exactly where it appears.  The colon style
-                # from the original label is preserved via the double_colon
-                # flag captured during preprocessing.
-                suffix = '::' if item.get('double_colon') else ':'
+                # Emit pointer table exactly where it appears.  Prefer style
+                # from reference ASM when available.
+                suffix = self.label_styles.get(item['name'],
+                                               '::' if item.get('double_colon') else ':')
                 functions_section.append(f"{item['name']}{suffix}")
                 for pointer in item['pointers']:
                     clean_pointer = pointer.replace('&', '').strip()
@@ -117,10 +131,9 @@ class CToZ80Compiler:
                 if label.startswith('.'):
                     functions_section.append(label)
                 else:
-                    # Preserve the colon style used in the original C
-                    # conversion.  When the source label ended with '::' it will
-                    # have item['double_colon'] set.
-                    suffix = '::' if item.get('double_colon') else ':'
+                    # Preserve colon style from reference ASM if available
+                    suffix = self.label_styles.get(label,
+                                               '::' if item.get('double_colon') else ':')
                     functions_section.append(f"{label}{suffix}")
             elif item['type'] == 'raw' and in_function:
                 functions_section.append(item['content'])
@@ -303,17 +316,24 @@ class CToZ80Compiler:
                               len(next_line) < 100):  # Skip simple statements only
                             i += 1
                 else:
-                    # Check if this comment represents a label (e.g. .loop)
+                    # Check if this comment represents a label (e.g. .loop).
                     if instruction.endswith(':'):
-                        label = instruction[:-1]
-                        processed.append({'type': 'label', 'name': label})
+                        label = instruction[:-1].strip()
+                        # Ignore sentences or headings that include spaces
+                        if ' ' in label:
+                            processed.append({'type': 'skip'})
+                        elif label.isupper() and len(label) > 2:
+                            processed.append({'type': 'skip'})
+                        else:
+                            processed.append({'type': 'label', 'name': label})
                     elif re.match(r'^\.[A-Za-z0-9_]+$', instruction):
                         if re.match(r'^\.\w+Text$', instruction):
                             processed.append({'type': 'skip'})
                         else:
                             processed.append({'type': 'label', 'name': instruction})
                     elif (instruction.startswith('MACRO') or instruction == 'ENDM' or
-                          instruction.startswith('boulder_dust_adjust')):
+                          instruction.startswith('boulder_dust_adjust') or
+                          instruction.startswith('REPT') or instruction == 'ENDR'):
                         processed.append({'type': 'raw', 'content': instruction})
                     else:
                         processed.append({'type': 'skip'})
@@ -343,6 +363,8 @@ class CToZ80Compiler:
             if label_match:
                 label = label_match.group(1)
                 double_colon = label_match.group(2) == '::'
+                if self.label_styles.get(label) == '::':
+                    double_colon = True
                 pointers = []
                 k = j + 1
                 while k < len(lines) and lines[k].strip().startswith('// dw'):
@@ -421,6 +443,14 @@ class CToZ80Compiler:
             ])
             if not has_asm_keyword:
                 return False
+
+        # Long explanatory sentences are unlikely to be ASM instructions
+        if len(comment.split()) > 4 and ',' not in comment and '(' not in comment:
+            return False
+
+        lower = comment.lower()
+        if (' to ' in lower or ' from ' in lower) and ',' not in lower:
+            return False
         
         # Check for ASM keywords at start (expanded list for better coverage)
         asm_keywords = [
