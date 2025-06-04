@@ -59,8 +59,9 @@ class CToZ80Compiler:
                 continue
             elif item['type'] == 'function_start':
                 func_name = item['name']
-                # Gewone functie label:
-                functions_section.append(f"{func_name}:")
+                # Use :: for known pointer table/global functions
+                label_suffix = '::' if self.is_pointer_table_function(func_name) else ':'
+                functions_section.append(f"{func_name}{label_suffix}")
                 in_function = True
             elif item['type'] == 'function_end':
                 in_function = False
@@ -150,6 +151,9 @@ class CToZ80Compiler:
                 function_name = self.extract_function_name(line)
                 processed.append({'type': 'function_start', 'name': function_name})
                 i += 1
+                # Skip duplicate label lines immediately following the function definition
+                if i < len(lines) and lines[i].strip() == f"{function_name}:":
+                    i += 1
                 continue
             
             # Look ahead for pointer table patterns after function ends
@@ -1120,6 +1124,7 @@ class CToZ80Compiler:
             'PlayerStepOutFromDoor',  # This IS a pointer table function
             '_EndNPCMovementScript',   # This IS a pointer table function
             'SetEnemyTrainerToStayAndFaceAnyDirection'  # This IS a pointer table function
+            ,'ClearVariablesOnEnterMap'
         }
         
         return func_name in pointer_functions
